@@ -49,6 +49,7 @@ body.pe .card:not(.elevc){display:none!important}body.pp .card:not(.elevc):not(.
 <div><label>Nombre</label><input id="wname" list="wsug"><datalist id="wsug"></datalist></div>
 <div><label>Largo (pulgadas)</label><input id="wlen" inputmode="decimal" placeholder="ej. 120"></div>
 <div><label>Alto (pulgadas; vacío en isla)</label><input id="wht" inputmode="decimal" placeholder="96"></div>
+<div><label>Espacio base → uppers sin cubierta (objetivo; aviso ½″ abajo)</label><input id="wclr" inputmode="decimal" placeholder="19 1/2"></div>
 </div>
 <button id="waddb" onclick="addWall()">Agregar pared</button> <button id="wcanc" class="sec hide" onclick="cancelWall()">Cancelar</button>
 <div id="werr" style="color:#dc2626;margin-top:6px"></div>
@@ -57,19 +58,19 @@ body.pe .card:not(.elevc){display:none!important}body.pp .card:not(.elevc):not(.
 <div class="card noprint" id="form">
 <h2 id="ftitle">Agregar gabinete</h2>
 <div class="small" style="margin-bottom:4px">Agregar rápido a cualquier pared (luego llenas las medidas y tocas Agregar):</div>
-<div class="quick"><button type="button" class="sec" onclick="quick('filler')">+ Filler</button> <button type="button" class="sec" onclick="quick('panel')">+ Panel ¾″</button> <button type="button" class="sec" onclick="quick('tpanel')">+ Panel alto</button> <button type="button" class="sec" onclick="quick('window')">+ Ventana</button></div>
+<div class="quick"><button type="button" class="sec" onclick="quick('filler')">+ Filler</button> <button type="button" class="sec" onclick="quick('panel')">+ Panel ¾″</button> <button type="button" class="sec" onclick="quick('tpanel')">+ Panel alto</button> <button type="button" class="sec" onclick="quick('window')">+ Ventana</button> <button type="button" class="sec" onclick="quick('dw')">+ Lavavajillas</button></div>
 <label>¿Qué es?</label>
 <select id="kind" onchange="kindChange()">
-<option value="cab">Gabinete</option><option value="fridge">Refrigerador</option><option value="stove">Estufa</option><option value="dw">Lavaplatos</option>
-<option value="window">Ventana</option><option value="hood">Campana</option><option value="filler">Filler</option><option value="panel">Panel de acabado ¾″</option><option value="tpanel">Panel alto ¾″ (piso hasta arriba)</option><option value="gap">Espacio vacío</option>
+<option value="cab">Gabinete</option><option value="fridge">Refrigerador</option><option value="stove">Estufa</option><option value="dw">Lavavajillas / Dishwasher (espacio 24″)</option>
+<option value="window">Ventana</option><option value="hood">Campana</option><option value="filler">Filler</option><option value="panel">Panel de acabado ¾″</option><option value="apanel">Panel de electrodoméstico / Appliance panel (¾″)</option><option value="tpanel">Panel alto ¾″ (piso hasta arriba)</option><option value="gap">Espacio vacío</option>
 </select>
 <div class="row">
 <div><label>Proyecto</label><input id="proj" placeholder="(opcional)"></div>
 <div><label>Pared</label><select id="wall"></select></div>
-<div><label id="tl">Tipo</label><select id="tipo" onchange="kindUI()"><option value="base">Base</option><option value="upper">Upper</option></select></div>
+<div><label id="tl">Tipo</label><select id="tipo" onchange="kindUI()"><option value="base">Base</option><option value="upper">Upper</option><option value="tall">Alto / pantry (full height)</option></select></div>
 <div id="botwrap"><label>Altura desde el piso</label><input id="bot" inputmode="decimal" placeholder="54"></div>
 <div><label id="wl">Ancho (ej. 30 o 31 1/4)</label><input id="w" inputmode="decimal"></div>
-<div id="hwrap"><label>Alto (ej. 29 1/2)</label><input id="h" inputmode="decimal"></div>
+<div id="hwrap"><label>Alto (ej. 29 1/2)</label><input id="h" inputmode="decimal"><button type="button" class="mini hide" id="apfull" onclick="{const wd=WALLS.find(x=>x.name===v('wall'));$('h').value=plain((wd&&wd.ht>0?wd.ht:96)-opt.toe)}">Alto completo (pared − toe kick)</button></div>
 <div id="depwrap"><label>Fondo (profundidad)</label><input id="dep" inputmode="decimal" placeholder="24"></div>
 </div>
 <div class="onlycab">
@@ -83,22 +84,46 @@ body.pe .card:not(.elevc){display:none!important}body.pp .card:not(.elevc):not(.
 <option value="c4">4 cajones (2 chicos + 2 grandes)</option>
 <option value="ls">Lazy Susan (esquinero)</option>
 <option value="dg">Esquinero diagonal (upper)</option>
+<option value="otr">Microondas con extractor (OTR) – upper corto sobre la estufa</option>
 <option value="none">Sin puertas (solo shelves)</option>
+<option value="op">Repisas abiertas / Open shelving (sin puertas)</option>
+<option value="sk1">Fregadero / Sink base: cajón falso + 1 puerta</option>
+<option value="sk2">Fregadero / Sink base: cajón falso + 2 puertas</option>
+<option value="t1">Pantry 1 puerta a toda altura</option>
+<option value="t2">Pantry 2 puertas a toda altura</option>
+<option value="t1s">Pantry 1 puerta dividida (abajo + arriba)</option>
+<option value="t2s">Despensa / Pantry: 4 puertas (2 cortas arriba + 2 altas abajo)</option>
+<option value="td">Alto: cajones abajo + puertas arriba</option>
+<option value="ov">Torre de horno (cajones + horno + puertas)</option>
+<option value="fs">Alto para refri (hueco + puertas arriba)</option>
 </select>
 <div id="lswrap" class="hide"><label>Ancho de frente de cada puerta (se llena solo: ancho − 24)</label><input id="lsw" inputmode="decimal" value="9" oninput="this.dataset.manual=1"><div class="small">2 puertas: ancho = frente − ⅞″ (⅛″ afuera + ¾″ donde se juntan) · alto = alto − ¼″.</div></div>
+<div id="tallwrap" class="hide"><div class="row">
+<div id="lowwrap"><label id="lowl">Alto de la puerta de abajo</label><input id="lowH" inputmode="decimal" placeholder="30 3/4"></div>
+<div id="pctwrap"><label>Parte de arriba % (despensa; abajo = resto)</label><input id="pPct" inputmode="decimal" placeholder="33"></div>
+<div id="tdnwrap"><label>Número de cajones abajo</label><input id="tdN" type="number" min="1" max="6" placeholder="3"></div>
+<div id="opwrap"><label id="opl">Alto del hueco del horno</label><input id="opH" inputmode="decimal" placeholder="30"></div>
+<div id="shsecwrap"><label>Shelves arriba / abajo (despensa)</label><div style="display:flex;gap:6px"><input id="shU" type="number" min="0" value="2" title="arriba / upper section"><input id="shL" type="number" min="0" value="3" title="abajo / lower section"></div></div>
+<div><label>Espacio arriba (gap al techo)</label><input id="tgap" inputmode="decimal" value="0"></div></div>
+<div class="small">Alto del gabinete: <button type="button" class="mini" onclick="tallTo(0)">Hasta el techo (alto de la pared)</button> <button type="button" class="mini" onclick="tallTo(96)">Arriba a 96″</button> <button type="button" class="mini" onclick="tallTo(84)">Arriba a 84″</button> (se resta el toe kick y el gap). Fondo vacío = 24″. Anchos comunes 24 / 28 / 30 / 33 / 36. Despensa normal: 4 puertas, partes proporcionales 33% arriba / 67% abajo (editable); 5 shelves: 2 arriba + 3 abajo (editables).</div></div>
 <div id="box4wrap" class="hide"><label>Alto de caja cajones grandes (4 cajones)</label><input id="box4" inputmode="decimal" value="7"><div class="small">Las 2 cajas grandes de este gabinete. Las chicas son de 5″.</div></div>
 <div class="row">
 <div><label>Shelves por gabinete</label><input id="sh" type="number" min="0" value="1"></div>
 <div><label>Cantidad de gabinetes iguales</label><input id="qty" type="number" min="1" value="1"></div>
 <div><label>Ancho de puerta especial (esquina, opcional)</label><input id="doorw" inputmode="decimal" placeholder="ej. 15"></div>
+<div style="grid-column:1/-1"><label class="chk"><input type="checkbox" id="blind" onchange="blindUI(true)"> Esquinero ciego (blind corner)</label>
+<div id="blindwrap" class="hide"><div class="row"><div><label>Hondo del gabinete de al lado</label><input id="bAdj" inputmode="decimal" placeholder="24" oninput="blindUI()"></div>
+<div><label>Parte ciega (escondida) a la</label><select id="bSide"><option value="">Auto (lado de la esquina)</option><option value="L">Izquierda</option><option value="R">Derecha</option></select></div></div>
+<div class="small" id="bInfo"></div></div></div>
 <div></div>
 <div><label>Esquinero compartido con pared</label><select id="shwall"></select></div>
 <div><label>En esa pared va al</label><select id="shend"><option value="start">Inicio</option><option value="end">Final</option></select></div>
 </div>
 </div>
 <label class="chk hide" id="overwrap"><input type="checkbox" id="overok"> Lleva gabinete encima (el refri no ocupa la fila de arriba)</label>
+<label class="chk hide" id="hboxwrap"><input type="checkbox" id="hbox" onchange="kindUI()"> Cubierta de madera para la campana (wood hood: ancho × alto × fondo)</label>
 <label class="chk hide" id="fillwrap"><input type="checkbox" id="fillc"> Centrar la ventana en el espacio que sobra</label>
-<div class="help hide" id="khelp"></div>
+<div class="help hide" id="khelp"></div><datalist id="dlTall"><option value="24"><option value="28"><option value="30"><option value="33"><option value="36"><option value="18"></datalist><datalist id="dlSink"><option value="30"><option value="33"><option value="36"></datalist><datalist id="dlRange"><option value="30"><option value="36"></datalist><datalist id="dlHood"><option value="30"><option value="36"><option value="42"></datalist>
 <label>Nota en el dibujo (en inglés, ej. Lazy Susan)</label><input id="label" placeholder="">
 <label class="chk onlycab"><input type="checkbox" id="nol"> No incluir en la lista para ordenar</label>
 <button id="addb" onclick="add()">Agregar</button> <button id="canc" class="sec hide" onclick="cancelEdit()">Cancelar</button>
@@ -119,7 +144,7 @@ body.pe .card:not(.elevc){display:none!important}body.pp .card:not(.elevc):not(.
 <div class="quick"><button class="sec" onclick="exportJSON()">Exportar archivo (.json)</button> <button class="sec" onclick="$('impf').click()">Importar archivo</button> <button onclick="downloadPDF()">Descargar PDF</button> <button class="sec" onclick="exportPDF()">Imprimir / PDF</button> <button class="sec" onclick="exportPNG()">Exportar imagen</button></div>
 <input type="file" id="impf" accept=".json,application/json" class="hide" onchange="importJSON(this)">
 <div class="small" style="margin-top:6px">El archivo .json sirve de respaldo o para pasarlo a otro teléfono (ábrelo con Importar). "Descargar PDF" crea el archivo PDF directo (sirve en el celular). "Imprimir / PDF" abre la ventana de imprimir del navegador.</div></div>
-<div class="card small noprint">Reglas: esquinero diagonal (upper) = 2 back panels W × H y (W − grueso) × H · frente diagonal = √2 × (W − hondo de los lados) · puerta = (frente − 1″, ½″ de cada lado) × (alto − ¼″) · shelf a plantilla · Lazy Susan = frente = ancho − 24″ · 2 puertas de (frente − ⅞″) × (alto − ¼″) · 4 cajones = 2 frentes de 6″ + 2 grandes de (alto − 12⅝″) ÷ 2 · shelf fondo = fondo del gabinete − 1½″ · ⅛″ alrededor y entre piezas · pieza a todo el ancho = ancho − ¼″ · 2 puertas = (ancho − ⅜″) ÷ 2 · cajón chico 6″ · puerta bajo cajón = alto − 6⅜″ · puerta completa = alto − ¼″ · 2 cajones grandes = (alto − ⅜″) ÷ 2 · caja = ancho − 2½″ × 5″ (12″ grandes) × 22″ · shelf = ancho − 2 × grueso del plywood (11/16″ → 1⅜″) × 22½″ base / 12½″ upper.</div>
+<div class="card small noprint">Reglas: panel de electrodoméstico / appliance panel = plywood ¾″ fijo, cara 24″ (o más honda si se pide) × alto (31″ o pared − toe kick), ocupa ¾″ de pared en la fila de bases (en las dos filas si pasa de 84″), sin caja/frentes/herraje, lista aparte (no se suma a paneles de acabado) · lavavajillas / dishwasher = espacio de 24″ en la fila de bases (cuenta en el largo de la pared), sin caja, sin frentes, sin herraje; solo informativo en la lista · despensa / pantry = anchos 24, 28, 30, 33, 36 · alto = pared − toe kick (96 → 92) · 2 partes proporcionales: arriba 33% del alto (redondeado a ⅛″), abajo = alto − arriba (92 → 30⅜ + 61⅝), % editable · 4 puertas (ancho − ⅜″) ÷ 2, alto = parte − 3/16″ (⅛″ arriba, abajo y entre partes) → 30 3/16 arriba y 61 7/16 abajo · 5 shelves: 2 arriba + 3 abajo (editables) · bisagras 2 por puerta, 3 si pasa de 40″ · gabinete alto (pantry) = puerta a toda altura alto − ¼″ · 2 puertas (ancho − ⅜″) ÷ 2 · dividida: abajo + arriba = alto − ⅜″ (⅛″ entre) · cajones abajo: cada frente = (alto de cajones − ⅛″ entre) ÷ n, caja = frente − 2″ (5″ si frente ≤ 6½″) · horno: puertas arriba = alto − ½″ − cajones − hueco · shelf alto = (ancho − 2 × plywood) × (fondo − 1½″) · estufa 30″ o 36″: arriba va campana del mismo ancho (aviso si no) o microondas con extractor (OTR) = upper del ancho de la estufa, alto 18″ (editable), cuelga del mismo tope que los demás uppers y deja abajo el hueco del microondas; siempre 2 puertas de (ancho − ⅜″) ÷ 2 × (alto − ¼″) (30 × 18 → 14 13/16 × 17¾; 36 × 18 → 17 13/16 × 17¾), sin shelves · espacio cubierta → uppers mínimo 19½″ (editable por pared) = altura de abajo del upper más bajo − (toe kick + alto de la base más alta), SIN la cubierta · objetivo 19½″, aviso solo si es menos de 19″ (4 + 31 + 19 = 54 no avisa) · uppers nuevos: abajo a 54″ del piso, alto = alto de la pared − 54 (96 → 42), editables; solo aviso · repisas abiertas / open shelving (base o upper): sin puertas ni cajones; fondo 24 base / 12 upper (editable); ancho libre (ej. 23½); shelf = (ancho − 2 × 11/16″) × (fondo − 1½″) SIEMPRE con 11/16″ por lado aunque el plywood sea otro (23½ → 22⅛); 1 shelf base / 3 upper; la caja se lista ancho × alto × fondo · fregadero / sink base (30, 33 o 36 = ancho del fregadero, centrado): cajón falso 6″ arriba = solo frente (ancho − ¼″) × 6, SIN caja, SIN rieles ni herraje; 1 puerta (ancho − ¼″) × (alto − 6⅜″) o 2 puertas (ancho − ⅜″) ÷ 2 × (alto − 6⅜″); bisagras solo de la puerta (2 c/u); shelves 0 (editable) · esquinero ciego (blind corner, base o upper): frente visible F = ancho − hondo del gabinete de al lado (24 base / 14 upper, editable) − 2″ de filler en la esquina (44 − 24 − 2 = 18); puertas/cajón/caja se sacan como un gabinete normal de ancho F (cajón + puerta: frente (F − ¼) × 6, puerta (F − ¼) × (alto − 6⅜), caja (F − 2½) × 5 × 22, cabe en fondo 24); filler 2 × alto aparte en la lista; shelf = (ancho total − 2 × plywood) × (fondo − 1½), 1 base / 2 upper; en la pared ocupa su ancho total; la parte ciega queda detrás del gabinete de la otra pared; si se marca compartido con otra pared, allá ocupa solo su fondo · alto para refri: hueco mínimo 72″ (default 72), puertas arriba = alto − ⅜″ − hueco · refri en la pared: 72″ default, aviso si es menos · campana abajo a 66″ del piso; aviso si la cubierta de madera pasa el alto de la pared · esquinero diagonal (upper) = 2 back panels W × H y (W − grueso) × H · frente diagonal = √2 × (W − hondo de los lados) · puerta = (frente − 1″, ½″ de cada lado) × (alto − ¼″) · shelf a plantilla · Lazy Susan = frente = ancho − 24″ · 2 puertas de (frente − ⅞″) × (alto − ¼″) · 4 cajones = 2 frentes de 6″ + 2 grandes de (alto − 12⅝″) ÷ 2 · shelf fondo = fondo del gabinete − 1½″ · ⅛″ alrededor y entre piezas · pieza a todo el ancho = ancho − ¼″ · 2 puertas = (ancho − ⅜″) ÷ 2 · cajón chico 6″ · puerta bajo cajón = alto − 6⅜″ · puerta completa = alto − ¼″ · 2 cajones grandes = (alto − ⅜″) ÷ 2 · caja = ancho − 2½″ × 5″ (12″ grandes) × 22″ · shelf = ancho − 2 × grueso del plywood (11/16″ → 1⅜″) × 22½″ base / 12½″ upper.</div>
 </main>
 <script>
 let cabs=JSON.parse(localStorage.getItem('cabs')||'[]');
@@ -133,12 +158,37 @@ function fr(x){let n=Math.round(x*16),w=Math.floor(n/16),r=n%16;if(!r)return w+'
 const f={'1/2':'½','1/4':'¼','3/4':'¾','1/8':'⅛','3/8':'⅜','5/8':'⅝','7/8':'⅞'}[r+'/'+d]||(String(r).split('').map(c=>SUP[c]).join('')+'⁄'+String(d).split('').map(c=>SUB[c]).join(''));return (w?w:'')+f+'″'}
 const sz=(a,b,c)=>fr(a).replace('″','')+' × '+fr(b).replace('″','')+(c!==undefined?' × '+fr(c).replace('″',''):'');
 const diagF=c=>Math.round(Math.SQRT2*(c.w-(c.dep>0?c.dep:14))*16)/16;
+const W0=c=>c.w;const bAdjD=c=>c.bAdj>0?c.bAdj:(c.tipo=='upper'?14:24),bF=c=>c.w-bAdjD(c)-2,bDep=c=>c.dep>0?c.dep:(c.tipo=='upper'?14:24);
+function bOff(c,side){const bd=bAdjD(c),F=bF(c);return side=='L'?{fx:bd+2,fw:F,hx:0,hw:bd,fl:bd}:{fx:0,fw:F,hx:F+2,hw:bd,fl:F}}
+const TT=['t1','t2','t1s','t2s','td','ov','fs'],isTall=c=>c.kind=='cab'&&c.tall&&TT.includes(c.cfg);
+const tTwo=c=>c.cfg=='t2'||c.cfg=='t2s'||(['td','ov','fs'].includes(c.cfg)&&c.w>24),bxH=f=>f<=6.5?5:Math.floor(f-2);
+const pSec=c=>{const H=c.h,up=Math.round(H*(c.pPct>0?c.pPct:33)/100*8)/8;return{up,lo:H-up,du:up-.1875,dl:H-up-.1875}};
+function tallSeg(c){const H=c.h,lo=c.lowH>0?c.lowH:30.75,n=Math.max(1,(c.tdN|0)||(c.cfg=='ov'?2:3)),op=c.opH>0?c.opH:(c.cfg=='fs'?72:30),t2=tTwo(c),s=[];
+const drs=()=>{const fh=(lo-(n-1)*.125)/n;for(let i=0;i<n;i++)s.push({t:'w',h:fh})};
+if(c.cfg=='t1'||c.cfg=='t2')s.push({t:'d',h:H-.25,two:t2,hp:'m'});
+else if((c.cfg=='t1s'||c.cfg=='t2s')&&c.pPct>0){const q=pSec(c);s.push({t:'d',h:q.dl,two:t2,hp:'t',sec:'LOWER'});s.push({t:'d',h:q.du,two:t2,hp:'b',sec:'UPPER'})}
+else if(c.cfg=='t1s'||c.cfg=='t2s'){s.push({t:'d',h:lo,two:t2,hp:'t'});s.push({t:'d',h:H-.375-lo,two:t2,hp:'b'})}
+else if(c.cfg=='td'){drs();s.push({t:'d',h:H-.375-lo,two:t2,hp:'b'})}
+else if(c.cfg=='ov'){drs();s.push({t:'o',h:op,lab:'OVEN',fill:'#e5e7eb'});s.push({t:'d',h:H-.5-lo-op,two:t2,hp:'b'})}
+else if(c.cfg=='fs'){s.push({t:'o',h:op,lab:'REFRIGERATOR',fill:'#fde68a'});s.push({t:'d',h:H-.375-op,two:t2,hp:'b'})}
+return s}
+function tallDraw(c,ix,iy,iw,ih,gp,pc){const sg=tallSeg(c),tot=sg.reduce((a,x)=>a+Math.max(x.h,1),0),k=(ih-(sg.length-1)*gp)/tot,half=(iw-gp)/2;let py=iy;
+sg.forEach(x=>{const ph=Math.max(x.h,1)*k;if(x.sec&&c.pPct>0){const q=pSec(c),u=x.sec=='UPPER';pc.lab2=(pc.lab2||[]).concat([{x:ix+iw/2,y:u?py+ph-3:py+ph*.55,t:(u?'UPPER ':'LOWER ')+fr(u?q.up:q.lo)+' · door '+fr(x.h)}])}if(x.t=='w')pc.push({px:ix,py,pw:iw,ph,t:'w'});else if(x.t=='o')pc.push({px:ix,py,pw:iw,ph,t:'o',fill:x.fill,lab:x.lab});
+else if(x.two){pc.push({px:ix,py,pw:half,ph,t:'d',hs:'R',hp:x.hp});pc.push({px:ix+half+gp,py,pw:half,ph,t:'d',hs:'L',hp:x.hp})}else pc.push({px:ix,py,pw:iw,ph,t:'d',hs:'L',hp:x.hp});py+=ph+gp})}
+const hY=(q,up)=>{const hl=Math.min(4.5,q.ph*.3);if(q.hp=='m'){const m=q.py+Math.min(q.ph/2,32);return[m-hl/2,m+hl/2]}return (q.hp=='b'||(q.hp==null&&up))?[q.py+1.5,q.py+1.5+hl]:[q.py+q.ph-1.5,q.py+q.ph-1.5-hl]};
 const lsF=c=>c.lsW>0?c.lsW:(c.w-24>0?c.w-24:9);
 function calc(c){const W=c.w,H=c.h,o={doors:[],fronts:[],boxes:[],shelves:[]};const full=W-.25,two=(W-.375)/2;
+if(c.cfg=='op'&&!c.tall){const D=c.dep>0?c.dep:(c.tipo=='upper'?12:24);if(c.sh>0)o.shelves.push([W-1.375,D-1.5,c.sh]);o.obox=[[W,H,D,1]];return o}
+if(c.blind&&c.kind=='cab'&&!c.tall){const F=bF(c),r=calc(Object.assign({},c,{blind:false,w:F,sh:0,doorW:0}));if(c.sh>0)r.shelves.push([W-2*opt.ply,bDep(c)-1.5,c.sh]);r.fill=[[2,H,1]];r.blindF=F;return r}
+if(isTall(c)){const ad=(a,r)=>{const e=a.find(z=>z.slice(0,-1).every((v,i)=>Math.abs(v-r[i])<1e-6));if(e)e[e.length-1]+=r[r.length-1];else a.push(r)};
+tallSeg(c).forEach(x=>{if(x.t=='d')ad(o.doors,x.two?[two,x.h,2]:[full,x.h,1]);if(x.t=='w'){ad(o.fronts,[full,x.h,1]);ad(o.boxes,[W-2.5,bxH(x.h),22,1])}if(x.t=='o')o.open=(o.open||[]).concat([[full,x.h,x.lab]])});
+const sd=(c.dep>0?c.dep:24)-1.5;if(c.shU!=null&&c.shL!=null){if(c.shU>0){const a=[W-2*opt.ply,sd,c.shU];a.sec='arriba / upper';o.shelves.push(a)}if(c.shL>0){const a=[W-2*opt.ply,sd,c.shL];a.sec='abajo / lower';o.shelves.push(a)}}else if(c.sh>0)o.shelves.push([W-2*opt.ply,sd,c.sh]);return o}
 if(c.cfg=='d1'){o.fronts.push([full,6,1]);o.doors.push([full,H-6.375,1]);o.boxes.push([W-2.5,5,22,1])}
 if(c.cfg=='d2'){o.fronts.push([full,6,1]);o.doors.push([two,H-6.375,2]);o.boxes.push([W-2.5,5,22,1])}
 if(c.cfg=='p1')o.doors.push([full,H-.25,1]);
 if(c.cfg=='p2')o.doors.push([two,H-.25,2]);
+if(c.cfg=='sk1'||c.cfg=='sk2'){o.ff=[[full,6,1]];o.doors.push(c.cfg=='sk2'?[two,H-6.375,2]:[full,H-6.375,1])}
+if(c.cfg=='otr')o.doors.push([two,H-.25,2]);
 if(c.cfg=='c2'){o.fronts.push([full,(H-.375)/2,2]);o.boxes.push([W-2.5,12,22,2])}
 if(c.cfg=='dg'){const F=diagF(c);o.doors.push([Math.round((Math.SQRT2*(W-(c.dep>0?c.dep:14))-1)*16)/16,H-.25,1]);o.backs=[[W,H,1],[W-opt.ply,H,1]];o.diag=F}
 if(c.cfg=='ls')o.doors.push([(lsF(c))-.875,H-.25,2]);
@@ -147,33 +197,35 @@ if(c.sh>0&&c.cfg!='c4'&&c.cfg!='ls'&&c.cfg!='dg')o.shelves.push([W-2*opt.ply,(c.
 const $=id=>document.getElementById(id),v=id=>$(id).value;
 const plain=x=>{const n=Math.round(x*16),w=Math.floor(n/16);let r=n%16,d=16;if(!r)return String(w);while(r%2==0){r/=2;d/=2}return (w?w+' ':'')+r+'/'+d};
 const esc=s=>String(s).replace(/[&<>"]/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
-const CFG={d1:'Cajón + 1 puerta',d2:'Cajón + 2 puertas',p1:'1 puerta completa',p2:'2 puertas completas',c2:'2 cajones grandes',c4:'4 cajones',ls:'Lazy Susan',dg:'Esquinero diagonal',none:'Solo shelves'};
-const KIND={tpanel:'Panel alto',panel:'Panel de acabado',cab:'Gabinete',fridge:'Refrigerador',stove:'Estufa',dw:'Lavaplatos',window:'Ventana',hood:'Campana',filler:'Filler',gap:'Espacio'};
-const EN={tpanel:'PANEL',panel:'PANEL',fridge:'REFRIGERATOR',stove:'RANGE',dw:'DW',window:'WINDOW',hood:'HOOD',filler:'',gap:''};
+const CFG={d1:'Cajón + 1 puerta',d2:'Cajón + 2 puertas',p1:'1 puerta completa',p2:'2 puertas completas',c2:'2 cajones grandes',c4:'4 cajones',ls:'Lazy Susan',dg:'Esquinero diagonal',otr:'Microondas con extractor (OTR)',op:'Repisas abiertas / Open shelving',sk1:'Fregadero: cajón falso + 1 puerta',sk2:'Fregadero: cajón falso + 2 puertas',none:'Solo shelves',t1:'Pantry 1 puerta',t2:'Pantry 2 puertas',t1s:'Pantry 1 puerta dividida',t2s:'Despensa 4 puertas (2 arriba + 2 abajo)',td:'Alto cajones + puertas',ov:'Torre de horno',fs:'Alto para refri'};
+const KIND={apanel:'Panel de electrodoméstico',tpanel:'Panel alto',panel:'Panel de acabado',cab:'Gabinete',fridge:'Refrigerador',stove:'Estufa',dw:'Lavavajillas',window:'Ventana',hood:'Campana',filler:'Filler',gap:'Espacio'};
+const EN={apanel:'APPLIANCE PANEL',tpanel:'PANEL',panel:'PANEL',fridge:'REFRIGERATOR',stove:'RANGE',dw:'DW',window:'WINDOW',hood:'HOOD',filler:'',gap:''};
 const AUTO=['window','gap','filler'];
-const HELP={filler:'Filler: pon el ancho (ej. 2). Va en la fila que escojas, con el alto de los gabinetes. Si dejas el ancho vacío llena lo que sobra.',panel:'Panel de acabado ¾″: va pegado al gabinete de al lado y toma su alto. Fondo: 24 base / 14 upper si lo dejas vacío.',tpanel:'Panel alto ¾″: va del piso hasta arriba (ej. 96) y ocupa ¾″ en las dos filas. Ponlo en el orden de una fila y en la otra se acomoda solo.',window:'Ventana: ancho, alto y altura desde el piso (abajo de la ventana). Con "Centrar" la ventana queda en medio del espacio que sobra en la fila.'};
-const DEF={tpanel:['upper',96,0],fridge:['base',70],stove:['base',36],dw:['base',0],window:['upper',40,42],hood:['upper',30,66]};
+const HELP={filler:'Filler: pon el ancho (ej. 2). Va en la fila que escojas, con el alto de los gabinetes. Si dejas el ancho vacío llena lo que sobra.',panel:'Panel de acabado ¾″: va pegado al gabinete de al lado y toma su alto. Fondo: 24 base / 14 upper si lo dejas vacío.',tpanel:'Panel alto ¾″: va del piso hasta arriba (ej. 96) y ocupa ¾″ en las dos filas. Ponlo en el orden de una fila y en la otra se acomoda solo.',apanel:'Panel de electrodoméstico: plywood ¾″ (siempre ¾″), 24″ de cara/fondo (puedes poner más hondo), alto 31″ o "Alto completo". Ocupa ¾″ en la fila de bases junto al refri/estufa; si pasa de 84″ ocupa ¾″ en las dos filas. Sin caja, frentes ni herraje.',hood:'Campana: ancho común 30, 36 o 42 (igual o más ancha que la estufa). Altura desde el piso = parte de abajo de la campana (66″ normalmente). Ponla en la fila de arriba en el lugar que va sobre la estufa. Marca "Cubierta de madera" si lleva caja de madera (ancho × alto × fondo).',window:'Ventana: ancho, alto y altura desde el piso (abajo de la ventana). Con "Centrar" la ventana queda en medio del espacio que sobra en la fila.'};
+const TYP=c=>c.tall?'tall':c.tipo;
+const DEF={apanel:['base',31,0,.75],tpanel:['upper',96,0],fridge:['base',72],stove:['base',36,0,30],dw:['base',0,0,24],window:['upper',40,42],hood:['upper',30,66,30]};
 let editIdx=-1;
 function kindUI(){const k=v('kind'),cab=k=='cab',up=v('tipo')=='upper';
 document.querySelectorAll('.onlycab').forEach(e=>e.classList.toggle('hide',!cab));
-$('hwrap').classList.toggle('hide',k=='dw'||k=='gap');$('depwrap').classList.toggle('hide',!(cab||k=='panel'||k=='tpanel'));$('depwrap').querySelector('label').textContent=cab?(v('cfg')=='dg'?'Hondo de los lados (vacío = 14)':'Fondo del gabinete (vacío = 24 base / 14 upper)'):'Fondo (profundidad)';$('fillwrap').classList.toggle('hide',k!='window');$('overwrap').classList.toggle('hide',k!='fridge');$('khelp').classList.toggle('hide',!HELP[k]);$('khelp').textContent=HELP[k]||'';
-$('botwrap').classList.toggle('hide',!((cab||k=='filler'||k=='gap')&&up||k=='window'||k=='hood'));
+$('hwrap').classList.toggle('hide',k=='dw'||k=='gap');$('apfull').classList.toggle('hide',k!='apanel');$('depwrap').classList.toggle('hide',!(cab||k=='panel'||k=='tpanel'||k=='apanel'||(k=='hood'&&$('hbox').checked)));$('hboxwrap').classList.toggle('hide',k!='hood');$('w').setAttribute('list',k=='stove'?'dlRange':k=='hood'?'dlHood':(cab&&v('tipo')=='tall'?'dlTall':''));$('depwrap').querySelector('label').textContent=k=='apanel'?'Fondo / cara del panel (24 estándar, más hondo si se pide)':k=='hood'?'Fondo de la cubierta de madera (ej. 20)':cab?(v('cfg')=='dg'?'Hondo de los lados (vacío = 14)':'Fondo del gabinete (vacío = 24 base / 14 upper)'):'Fondo (profundidad)';$('fillwrap').classList.toggle('hide',k!='window');$('overwrap').classList.toggle('hide',k!='fridge');$('khelp').classList.toggle('hide',!HELP[k]);$('khelp').textContent=HELP[k]||'';
+$('botwrap').classList.toggle('hide',!((cab||k=='filler'||k=='gap')&&up||k=='window'||k=='hood'));$('botwrap').querySelector('label').textContent=k=='hood'?'Altura desde el piso (abajo de la campana)':'Altura desde el piso';
 $('wl').textContent=AUTO.includes(k)?'Ancho (vacío = llenar lo que sobra)':k=='panel'||k=='tpanel'?'Ancho (¾ normalmente)':'Ancho (ej. 30 o 31 1/4)';
-$('hwrap').querySelector('label').textContent=k=='panel'?'Alto (vacío = igual al gabinete de al lado)':k=='tpanel'?'Alto desde el piso (ej. 96)':k=='window'?'Alto de la ventana':'Alto (ej. 29 1/2)';$('dep').placeholder=k=='tpanel'?'24':(up?'14':'24');
+$('hwrap').querySelector('label').textContent=k=='panel'?'Alto (vacío = igual al gabinete de al lado)':k=='tpanel'?'Alto desde el piso (ej. 96)':k=='window'?'Alto de la ventana':'Alto (ej. 29 1/2)';$('dep').placeholder=k=='tpanel'?'24':(up?(v('cfg')=='op'?'12':'14'):'24');
 $('tl').textContent=cab?'Tipo':'Fila (abajo = base, arriba = upper)';
 if(window.cfgUI)cfgUI();if(window.hDef&&editIdx<0)hDef();$('ftitle').textContent='Paso 3 – '+(editIdx>=0?'Editar ':'Agregar ')+KIND[k].toLowerCase()}
 function quick(k){$('kind').value=k;kindChange();$('form').scrollIntoView({behavior:'smooth'});$('wall').focus()}
-function kindChange(){$('dep').value='';$('fillc').checked=false;if(v('kind')=='panel'||v('kind')=='tpanel'){$('w').value='3/4';$('h').value=''}const D=DEF[v('kind')];if(D){$('tipo').value=D[0];$('h').value=D[1]?plain(D[1]):'';$('bot').value=D[2]?plain(D[2]):''}kindUI()}
+function kindChange(){$('dep').value='';$('fillc').checked=false;if(v('kind')=='panel'||v('kind')=='tpanel'){$('w').value='3/4';$('h').value=''}const D=DEF[v('kind')];if(D){$('tipo').value=D[0];$('h').value=D[1]?plain(D[1]):'';$('bot').value=D[2]?plain(D[2]):'';if(D[3])$('w').value=plain(D[3])}else{$('bot').value='';if(editIdx<0&&v('kind')=='cab')$('h').value=''}$('hbox').checked=false;if(v('kind')=='hood'){const st=cabs.find(c=>c.kind=='stove'&&c.wall===v('wall'));if(st&&st.w>0)$('w').value=plain(st.w)}kindUI()}
 function add(){const k=v('kind'),cab=k=='cab';let w=parse(v('w')),h=parse(v('h')),bot=parse(v('bot')),dw=parse(v('doorw'));
-if(cab){if(!(w>3&&h>3)){err.textContent='Revisa el ancho y el alto.';return}}
-else{if(!v('w').trim()&&(k=='panel'||k=='tpanel'))w=.75;if(!v('w').trim()&&AUTO.includes(k))w=0;else if(!(w>0)){err.textContent='Revisa el ancho.';return}
+if(cab){if(!(w>(v('cfg')=='op'?0:3)&&h>3)){err.textContent='Revisa el ancho y el alto.';return}}
+else{if(!v('w').trim()&&(k=='panel'||k=='tpanel'))w=.75;if(k=='apanel')w=.75;if(!v('w').trim()&&AUTO.includes(k))w=0;else if(!(w>0)){err.textContent='Revisa el ancho.';return}
 if(!(h>0))h=(DEF[k]&&DEF[k][1])||0}
 err.textContent='';
-const it={kind:k,proj:v('proj'),wall:v('wall').trim(),tipo:v('tipo'),w,h,cfg:cab?v('cfg'):'',sh:cab?(+v('sh')||0):0,qty:cab?(+v('qty')||1):1};
-if(bot>0)it.bot=bot;const lb=v('label').trim();if(lb)it.label=lb;if(cab&&$('nol').checked)it.noList=true;if(cab&&it.cfg=='ls'){const lw=parse(v('lsw'));it.lsW=lw>0?lw:(w-24>0?w-24:9)}if(cab&&it.cfg=='c4'){const b4=parse(v('box4'));it.box4=b4>0?b4:7}const dp=parse(v('dep'));if((cab||k=='panel'||k=='tpanel')&&dp>0)it.dep=dp;if(k=='window'&&$('fillc').checked&&w>0)it.fill=true;if(k=='fridge'&&$('overok').checked)it.overOK=true;if(k=='tpanel')delete it.bot;if(cab&&dw>0)it.doorW=dw;const sw=v('shwall').trim();if(cab&&sw&&sw!==it.wall){it.shWall=sw;it.shEnd=v('shend')}
+const TL=cab&&v('tipo')=='tall';const it={kind:k,proj:v('proj'),wall:v('wall').trim(),tipo:TL?'base':v('tipo'),w,h,cfg:cab?v('cfg'):'',sh:cab?(+v('sh')||0):0,qty:cab?(+v('qty')||1):1};
+if(bot>0)it.bot=bot;const lb=v('label').trim();if(lb)it.label=lb;if(cab&&$('nol').checked)it.noList=true;if(cab&&it.cfg=='ls'){const lw=parse(v('lsw'));it.lsW=lw>0?lw:(w-24>0?w-24:9)}if(cab&&it.cfg=='c4'){const b4=parse(v('box4'));it.box4=b4>0?b4:7}const dp=parse(v('dep'));if((cab||k=='panel'||k=='tpanel'||k=='apanel')&&dp>0)it.dep=dp;if(k=='window'&&$('fillc').checked&&w>0)it.fill=true;if(k=='fridge'&&$('overok').checked)it.overOK=true;if(k=='tpanel')delete it.bot;if(cab&&dw>0)it.doorW=dw;if(cab&&$('blind').checked&&!TL){it.blind=true;const ba=parse(v('bAdj'));if(ba>0)it.bAdj=ba;if(v('bSide'))it.bSide=v('bSide');if(!(bF(it)>3)){err.textContent='El esquinero ciego es muy angosto: ancho − hondo de al lado − 2 debe ser más de 3″.';return}delete it.doorW}if(TL){it.tall=true;const lo=parse(v('lowH')),tn=+v('tdN'),op=parse(v('opH'));if(lo>0&&['t1s','t2s','td','ov'].includes(it.cfg))it.lowH=lo;if(tn>0&&['td','ov'].includes(it.cfg))it.tdN=tn|0;if(op>0&&['ov','fs'].includes(it.cfg))it.opH=op;if(['t1s','t2s'].includes(it.cfg)){const pc=parse(v('pPct'));it.pPct=pc>5&&pc<95?pc:33;delete it.lowH;it.shU=Math.max(0,+v('shU')|0);it.shL=Math.max(0,+v('shL')|0);it.sh=it.shU+it.shL}if(it.cfg=='fs'&&op>0&&op<72){err.textContent='El hueco del refri debe ser de 72″ o más.';return}if(isTall(it)){const z=tallSeg(it);if(z.some(x=>x.h<3)){err.textContent='Las medidas no caben: revisa el alto, el alto de abajo y el hueco.';return}}}if(k=='hood'&&$('hbox').checked){it.hbox=true;if(dp>0)it.dep=dp}const sw=v('shwall').trim();if(cab&&sw&&sw!==it.wall){it.shWall=sw;it.shEnd=v('shend')}
+let warn='';if(k=='fridge'&&h<72)warn='Aviso: el hueco del refri es de '+fr(h)+', menos del mínimo de 72″.';if(k=='hood'&&it.hbox){const wd=WALLS.find(x=>x.name===it.wall),top=(it.bot||66)+(it.h||30);if(wd&&wd.ht>0&&top>wd.ht+.01)warn='Aviso: la cubierta de madera llega a '+fr(top)+' y la pared mide '+fr(wd.ht)+' (se pasa por '+fr(top-wd.ht)+').'}
 if(editIdx>=0){cabs[editIdx]=it;cancelEdit()}else cabs.push(it);
-save();render();$('w').value=k=='panel'||k=='tpanel'?'3/4':'';$('fillc').checked=false;$('label').value='';$('nol').checked=false;$('doorw').value='';$('shwall').value='';$('w').focus()}
-function edit(i){const c=cabs[i];editIdx=i;$('kind').value=c.kind;$('proj').value=c.proj||'';$('wall').value=c.wall||'';$('tipo').value=c.tipo;cfgUI();
+save();render();err.textContent=warn;$('blind').checked=false;$('bAdj').value='';$('bSide').value='';blindUI();$('w').value=k=='panel'||k=='tpanel'?'3/4':'';$('fillc').checked=false;$('label').value='';$('nol').checked=false;$('doorw').value='';$('shwall').value='';$('w').focus()}
+function edit(i){const c=cabs[i];editIdx=i;$('kind').value=c.kind;$('proj').value=c.proj||'';$('wall').value=c.wall||'';$('tipo').value=TYP(c);cfgUI();$('lowH').value=c.lowH?plain(c.lowH):'';$('tdN').value=c.tdN||'';$('opH').value=c.opH?plain(c.opH):'';$('shU').value=c.shU!=null?c.shU:2;$('pPct').value=c.pPct?plain(c.pPct):'';$('shL').value=c.shL!=null?c.shL:3;$('hbox').checked=!!c.hbox;$('blind').checked=!!c.blind;$('bAdj').value=c.bAdj?plain(c.bAdj):'';$('bSide').value=c.bSide||'';
 $('w').value=c.w?plain(c.w):'';$('h').value=c.h?plain(c.h):'';$('bot').value=c.bot?plain(c.bot):'';if(c.kind=='cab'){$('cfg').value=c.cfg;$('sh').value=c.sh;$('qty').value=c.qty;$('box4').value=plain(c.box4>0?c.box4:7);$('lsw').value=plain(lsF(c));$('lsw').dataset.manual=1}
 $('doorw').value=c.doorW?plain(c.doorW):'';$('dep').value=c.dep?plain(c.dep):'';$('fillc').checked=!!c.fill;$('overok').checked=!!c.overOK;$('shwall').value=c.shWall||'';$('shend').value=c.shEnd||'start';$('label').value=c.label||'';$('nol').checked=!!c.noList;
 $('addb').textContent='Guardar cambios';$('canc').classList.remove('hide');kindUI();$('form').scrollIntoView({behavior:'smooth'})}
@@ -184,7 +236,7 @@ function del(i){cabs.splice(i,1);if(editIdx==i)cancelEdit();else if(editIdx>i)ed
 function order(){const walls=WALLS.map(x=>x.name);cabs.forEach(c=>{if(!walls.includes(c.wall))walls.push(c.wall)});cabs.forEach(c=>{if(c.shWall&&!walls.includes(c.shWall))walls.push(c.shWall)});const disp=[];let n=0;
 walls.forEach(wl=>['base','upper'].forEach(r=>cabs.forEach((c,i)=>{if(c.wall===wl&&c.tipo===r)disp.push({c,i,num:c.kind=='cab'?++n:0})})));return{walls,disp}}
 function desc(c){return desc0(c)+(isFullC(c)?' · <span class="ok">ocupa las 2 filas</span>':'')}
-function desc0(c){if(c.kind=='cab')return sz(c.w,c.h)+' · '+CFG[c.cfg]+(c.dep?' · fondo '+fr(c.dep):'')+(c.cfg=='dg'?' · frente diagonal '+fr(diagF(c)):'')+(c.cfg=='ls'?' · frente '+fr(lsF(c))+' c/u':'')+(c.cfg=='c4'?' · cajas grandes '+fr(c.box4>0?c.box4:7):'')+(c.doorW?' · puerta '+fr(c.doorW):'')+(c.bot&&c.tipo=='upper'?' · a '+fr(c.bot)+' del piso':'')+(c.label?' · '+esc(c.label):'')+(c.shWall?' · esquinero con '+esc(c.shWall)+' ('+(c.shEnd=='end'?'final':'inicio')+')':'')+(c.noList?' · <b style="color:#b45309">no va en la lista</b>':'');
+function desc0(c){if(c.kind=='cab')return sz(c.w,c.h)+' · '+(c.blind?'Esquinero ciego · frente '+fr(bF(c))+' · ':'')+CFG[c.cfg]+(c.dep?' · fondo '+fr(c.dep):'')+(c.cfg=='dg'?' · frente diagonal '+fr(diagF(c)):'')+(c.cfg=='ls'?' · frente '+fr(lsF(c))+' c/u':'')+(c.cfg=='c4'?' · cajas grandes '+fr(c.box4>0?c.box4:7):'')+(c.doorW?' · puerta '+fr(c.doorW):'')+(c.bot&&c.tipo=='upper'?' · a '+fr(c.bot)+' del piso':'')+(c.label?' · '+esc(c.label):'')+(c.shWall?' · esquinero con '+esc(c.shWall)+' ('+(c.shEnd=='end'?'final':'inicio')+')':'')+(c.noList?' · <b style="color:#b45309">no va en la lista</b>':'');
 return '<i>'+KIND[c.kind]+'</i> '+(c.w?fr(c.w):'(llena lo que sobra)')+(c.kind=='panel'&&!c.h?' × (alto del gabinete de al lado)':'')+(c.dep?' · fondo '+fr(c.dep):'')+(c.fill?' · centrada en el espacio que sobra':'')+(c.h&&c.kind!='gap'&&c.kind!='dw'?' × '+fr(c.h):'')+(c.bot&&(c.tipo=='upper'||c.kind=='window'||c.kind=='hood')?' · a '+fr(c.bot)+' del piso':'')+(c.label?' · '+esc(c.label):'')}
 function render(){updProj();const{walls,disp}=order();
 const wv=v('wall'),sv=v('shwall');$('wall').innerHTML=WALLS.map(x=>`<option value="${esc(x.name)}">${esc(x.name)}</option>`).join('');if(WALLS.some(x=>x.name===wv))$('wall').value=wv;
@@ -192,48 +244,59 @@ $('shwall').innerHTML='<option value="">(no es esquinero)</option>'+WALLS.map(x=
 $('form').classList.toggle('hide',!WALLS.length);$('nowall').classList.toggle('hide',!!WALLS.length);
 let tb='<tr><th>#</th><th>Gabinete</th><th>Tipo</th><th>Cant.</th><th></th></tr>';let cw=null,cr=null;
 disp.forEach(({c,i,num})=>{if(c.wall!==cw){cw=c.wall;cr=null;tb+=`<tr class="wh"><td colspan="5">Pared: ${esc(c.wall||'(sin pared)')}</td></tr>`}
-tb+=`<tr><td>${num||''}</td><td>${desc(c)}</td><td>${c.tipo}</td><td>${c.kind=='cab'?c.qty:''}</td><td class="act noprint"><button class="mini" onclick="move(${i},-1)" title="Subir">↑</button><button class="mini" onclick="move(${i},1)" title="Bajar">↓</button><button class="mini" onclick="edit(${i})" title="Editar">✎</button> <button class="del" onclick="del(${i})">x</button></td></tr>`});
+tb+=`<tr><td>${num||''}</td><td>${desc(c)}</td><td>${TYP(c)}</td><td>${c.kind=='cab'?c.qty:''}</td><td class="act noprint"><button class="mini" onclick="move(${i},-1)" title="Subir">↑</button><button class="mini" onclick="move(${i},1)" title="Bajar">↓</button><button class="mini" onclick="edit(${i})" title="Editar">✎</button> <button class="del" onclick="del(${i})">x</button></td></tr>`});
 list.innerHTML=tb;
 drawAll(walls,disp);renderWalls();
 const lc=disp.filter(d=>d.c.kind=='cab'&&!d.c.noList);
 if(!lc.length){out.innerHTML='Agrega gabinetes para ver las medidas.';return}
 const T={doors:{},fronts:{},boxes:{},shelves:{}};
-const BK={};lc.forEach(({c,num})=>{const o=calc(c);(o.backs||[]).forEach(p=>{const s=sz(p[0],p[1]);BK[s]=BK[s]||{q:0,a:p[0],b:p[1],from:[]};BK[s].q+=p[2]*c.qty;BK[s].from.push(num)});for(const k of['doors','fronts','boxes','shelves'])o[k].forEach(p=>{const q=p[p.length-1]*c.qty,dims=p.slice(0,-1),s=sz(...dims)+(k=='shelves'?' ('+c.tipo+')':'');T[k][s]=T[k][s]||{q:0,a:dims[0],b:dims[1],from:[]};T[k][s].q+=q;T[k][s].from.push(num)})});
+const BK={},FL={},OB={};lc.forEach(({c,num})=>{const o=calc(c);(o.obox||[]).forEach(p=>{const s=sz(p[0],p[1],p[2]);OB[s]=OB[s]||{q:0,a:p[0],b:p[1],from:[]};OB[s].q+=p[3]*c.qty;OB[s].from.push(num)});(o.fill||[]).forEach(p=>{const s=sz(p[0],p[1]);FL[s]=FL[s]||{q:0,a:p[0],b:p[1],from:[]};FL[s].q+=p[2]*c.qty;FL[s].from.push(num)});(o.backs||[]).forEach(p=>{const s=sz(p[0],p[1]);BK[s]=BK[s]||{q:0,a:p[0],b:p[1],from:[]};BK[s].q+=p[2]*c.qty;BK[s].from.push(num)});(o.ff||[]).forEach(p=>{const s=sz(p[0],p[1])+' — cajón falso (sin caja) / false drawer front (no box)';T.fronts[s]=T.fronts[s]||{q:0,a:p[0],b:p[1],from:[]};T.fronts[s].q+=p[2]*c.qty;T.fronts[s].from.push(num)});for(const k of['doors','fronts','boxes','shelves'])o[k].forEach(p=>{const q=p[p.length-1]*c.qty,dims=p.slice(0,-1),s=sz(...dims)+(k=='shelves'?' ('+TYP(c)+(p.sec?' '+p.sec:'')+')':'');T[k][s]=T[k][s]||{q:0,a:dims[0],b:dims[1],from:[]};T[k][s].q+=q;T[k][s].from.push(num)})});
 const N={doors:'Puertas / Doors',fronts:'Frentes de cajón / Drawer fronts',boxes:'Cajas de cajón / Drawer boxes',shelves:'Shelves'};let h=`<p class="m" style="font-size:15px;margin:0 0 6px">Plywood: ${PLY[opt.ply]}</p>`;
 for(const k in T){const e=Object.entries(T[k]).sort((x,y)=>y[1].a-x[1].a||y[1].b-x[1].b);if(!e.length)continue;const tot=e.reduce((s,x)=>s+x[1].q,0);
 h+=`<h2>${N[k]} — ${tot}</h2><table><tr><th>Medida</th><th>Cant.</th><th>Gabinete #</th></tr>`+e.map(([s,x])=>`<tr><td class="m">${s}</td><td>×${x.q}</td><td>${[...new Set(x.from)].join(', ')}</td></tr>`).join('')+'</table>'}
 const pn=panelList(disp);if(pn.length){const G={};pn.forEach(x=>{const k=sz(x.h,x.d)+' ('+x.r+')';G[k]=G[k]||{q:0,h:x.h,d:x.d,from:[]};G[k].q++;if(x.n)G[k].from.push('#'+x.n)});
 const e=Object.entries(G).sort((a,b)=>b[1].h-a[1].h);h+=`<h2>Paneles de acabado ¾″ — ${pn.length}</h2><table><tr><th>Alto × fondo</th><th>Cant.</th><th>Junto a</th></tr>`+e.map(([k,x])=>`<tr><td class="m">${k}</td><td>×${x.q}</td><td>${[...new Set(x.from)].join(', ')}</td></tr>`).join('')+'</table><p class="small">Medidas estimadas: alto del gabinete de al lado × fondo 24″ (base) / 14″ (upper). Revísalas o pon el alto en el panel.</p>'}
 {const e=Object.entries(BK).sort((x,y)=>y[1].a-x[1].a||y[1].b-x[1].b);if(e.length)h+=`<h2>Back panels — ${e.reduce((s,x)=>s+x[1].q,0)}</h2><table><tr><th>Medida</th><th>Cant.</th><th>Gabinete #</th></tr>`+e.map(([s,x])=>`<tr><td class="m">${s}</td><td>×${x.q}</td><td>${[...new Set(x.from)].join(', ')}</td></tr>`).join('')+'</table><p class="small">Esquinero diagonal: shelf diagonal → cortar a plantilla.</p>'}
+{const hr=[];WALLS.forEach(wl=>((WINFO[wl.name]||{}).hoods||[]).forEach(o=>{const c=o.c;if(c.kind=='cab'){hr.push([`Microondas OTR (gabinete #${(disp.find(d=>d.c===c)||{}).num||''}) ${fr(c.w)}`,esc(wl.name),o.sw==null?'sin estufa debajo':Math.abs(o.sw-c.w)>.01?'⚠ ancho distinto a la estufa ('+fr(o.sw)+')':(Math.abs(o.off)<.07?'mismo ancho y centrado sobre la estufa ✓':'⚠ '+fr(Math.abs(o.off))+' fuera del centro de la estufa')]);return}const wn=o.sw!=null&&Math.abs(o.sw-c.w)>.01?' · ⚠ la campana ('+fr(c.w)+') no mide lo mismo que la estufa ('+fr(o.sw)+')':'',ok=o.off==null?'sin estufa debajo':Math.abs(o.off)<.07?'centrada sobre la estufa ✓':'⚠ '+fr(Math.abs(o.off))+' fuera del centro de la estufa';hr.push([`Hood ${fr(c.w)} · abajo a ${fr(c.bot||66)} del piso`,esc(wl.name),ok+wn]);if(c.hbox){const top=(c.bot||66)+(c.h||30),ov=wl.ht>0?top-wl.ht:0;hr.push([`Wood hood cover ${sz(c.w,c.h||30,c.dep||20)}`,esc(wl.name),'caja de madera (ancho × alto × fondo)'+(ov>.01?' · ⚠ se pasa del alto de la pared por '+fr(ov):'')])}}));
+{const ap=disp.filter(d=>d.c.kind=='apanel');if(ap.length){const G={};ap.forEach(d=>{const D=d.c.dep>0?d.c.dep:24,k=sz(D,d.c.h||31)+' × ¾';G[k]=G[k]||{q:0,h:d.c.h||31,w:[]};G[k].q++;G[k].w.push(d.c.wall)});h+=`<h2>Paneles de electrodoméstico / Appliance panels (¾ plywood) — ${ap.length}</h2><table><tr><th>Cara × alto × grueso</th><th>Cant.</th><th>Pared</th></tr>`+Object.entries(G).sort((a,b)=>b[1].h-a[1].h).map(([k,x])=>`<tr><td class="m">${k}</td><td>×${x.q}</td><td>${esc([...new Set(x.w)].join(', '))}</td></tr>`).join('')+'</table><p class="small">Plywood ¾″ siempre (no depende del grueso escogido). Sin caja, frentes ni herraje. No se repite en "Paneles de acabado".</p>'}}
+{const dws=disp.filter(d=>d.c.kind=='dw');if(dws.length)h+=`<h2>Espacios sin gabinete / Appliance spaces</h2><table><tr><th>Medida</th><th>Pared</th><th>Nota</th></tr>`+dws.map(d=>`<tr><td class="m">Dishwasher space ${fr(d.c.w||24)}</td><td>${esc(d.c.wall)}</td><td>sin caja, sin frentes / no box, no fronts</td></tr>`).join('')+'</table><p class="small">Solo informativo: no se corta ni se ordena nada para estos espacios.</p>'}
+{const cl=WALLS.filter(wl=>(WINFO[wl.name]||{}).clr).map(wl=>{const ci=WINFO[wl.name].clr,bad=ci.act<ci.min-.51;return`<tr><td class="m">${fr(ci.act)}</td><td>${esc(wl.name)}</td><td>${bad?'⚠ menos de '+fr(ci.min-.5)+' (objetivo '+fr(ci.min)+')':'OK (objetivo '+fr(ci.min)+', aviso si es menos de '+fr(ci.min-.5)+')'}</td></tr>`});if(cl.length)h+=`<h2>Espacio base → uppers (sin cubierta)</h2><table><tr><th>Medida</th><th>Pared</th><th>Nota</th></tr>${cl.join('')}</table><p class="small">Altura de abajo de los uppers − (toe kick + alto de la base), sin contar la cubierta. Solo aviso; no cambia medidas.</p>`}
+if(hr.length)h+=`<h2>Campana / Hood — ${hr.filter(r=>r[0].startsWith('Hood')).length}</h2><table><tr><th>Medida</th><th>Pared</th><th>Nota</th></tr>`+hr.map(r=>`<tr><td class="m">${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')+'</table><p class="small">La campana es un aparato (no es corte de gabinete). Revisa la ficha técnica para la altura mínima sobre la estufa.</p>'}
+{const e=Object.entries(OB).sort((x,y)=>y[1].a-x[1].a);if(e.length)h+=`<h2>Repisas abiertas / Open shelving (caja) — ${e.reduce((s,x)=>s+x[1].q,0)}</h2><table><tr><th>Ancho × alto × fondo</th><th>Cant.</th><th>Gabinete #</th></tr>`+e.map(([s,x])=>`<tr><td class="m">${s}</td><td>×${x.q}</td><td>${[...new Set(x.from)].join(', ')}</td></tr>`).join('')+'</table><p class="small">Sin puertas ni cajones. Shelf = (ancho − 2 × 11/16″) × (fondo − 1½″), siempre 11/16″ por lado.</p>'}
+{const e=Object.entries(FL).sort((x,y)=>y[1].b-x[1].b);if(e.length)h+=`<h2>Fillers de esquina (blind corner) — ${e.reduce((s,x)=>s+x[1].q,0)}</h2><table><tr><th>Medida</th><th>Cant.</th><th>Gabinete #</th></tr>`+e.map(([s,x])=>`<tr><td class="m">${s}</td><td>×${x.q}</td><td>${[...new Set(x.from)].join(', ')}</td></tr>`).join('')+'</table><p class="small">Filler de 2″ en la esquina del esquinero ciego (para que no choquen las jaladeras). Ancho × alto.</p>'}
 const ex=disp.filter(d=>d.c.kind=='cab'&&d.c.noList);if(ex.length)h+=`<p class="small">No incluidos en la lista: #${ex.map(d=>d.num).join(', #')}</p>`;
 out.innerHTML=h}
 function panelList(disp){const res=[];disp.forEach((d,j)=>{if(d.c.kind=='tpanel'){res.push({h:d.c.h||96,d:d.c.dep||24,r:'alto'});return}if(d.c.kind!='panel')return;const row=disp.filter(x=>x.c.wall===d.c.wall&&x.c.tipo===d.c.tipo),k=row.indexOf(d);
 const nb=[row[k-1],row[k+1]].find(x=>x&&x.c.kind=='cab');const up=d.c.tipo=='upper';res.push({h:d.c.h||(nb?nb.c.h:(up?42:31)),d:d.c.dep||(up?14:24),r:d.c.tipo,n:nb&&nb.num})});return res}
 function copy(){navigator.clipboard.writeText(out.innerText).then(()=>alert('Lista copiada'))}
 const PLY={0.5:'½″',0.625:'⅝″',0.6875:'11/16″',0.75:'¾″'};
-const CFGALL=[...document.querySelectorAll('#cfg option')].map(o=>[o.value,o.textContent]),UPCFG=['p1','p2','none','dg'];
-function cfgUI(){const up=v('tipo')=='upper',cur=v('cfg'),list=CFGALL.filter(o=>up?UPCFG.includes(o[0]):o[0]!='dg'),key=list.map(o=>o[0]).join();
+const CFGALL=[...document.querySelectorAll('#cfg option')].map(o=>[o.value,o.textContent]),UPCFG=['p1','p2','none','dg','otr','op'];
+function cfgUI(){const up=v('tipo')=='upper',cur=v('cfg'),tl=v('tipo')=='tall',list=CFGALL.filter(o=>up?UPCFG.includes(o[0]):tl?TT.includes(o[0]):o[0]!='dg'&&!TT.includes(o[0])),key=list.map(o=>o[0]).join();
 if($('cfg').dataset.k!==key){$('cfg').innerHTML=list.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join('');$('cfg').dataset.k=key}
-if(list.some(o=>o[0]==cur))$('cfg').value=cur;else $('cfg').value=up?(parse(v('w'))>24?'p2':'p1'):'d2';b4UI()}
+if(list.some(o=>o[0]==cur))$('cfg').value=cur;else $('cfg').value=up?(parse(v('w'))>24?'p2':'p1'):tl?(parse(v('w'))>24?'t2s':'t1s'):'d2';b4UI()}
 function lsAuto(){const w=parse(v('w'));if(v('cfg')=='ls'&&!$('lsw').dataset.manual&&w-24>0)$('lsw').value=plain(w-24)}
-function hDef(){if(v('kind')=='cab'&&v('tipo')=='base'&&!v('h').trim())$('h').value='31';else if(v('kind')=='cab'&&v('tipo')=='upper'&&v('h').trim()=='31'&&editIdx<0)$('h').value=''}
-function b4UI(){$('box4wrap').classList.toggle('hide',!(v('kind')=='cab'&&v('cfg')=='c4'));$('lswrap').classList.toggle('hide',!(v('kind')=='cab'&&v('cfg')=='ls'))}
-const isFullC=c=>c.kind=='tpanel'||(c.kind=='fridge'&&!c.overOK)||(c.kind=='cab'&&c.tipo!='upper'&&opt.toe+c.h>=84);
+function tallTo(t){const wd=WALLS.find(x=>x.name===v('wall')),top=t||(wd&&wd.ht>0?wd.ht:96),g=parse(v('tgap'))||0;$('h').value=plain(top-opt.toe-g);$('h').dataset.auto=1}
+function blindUI(chg){const on=$('blind').checked&&v('kind')=='cab'&&v('tipo')!='tall';$('blindwrap').classList.toggle('hide',!on);const up=v('tipo')=='upper';$('bAdj').placeholder=up?'14':'24';
+if(chg&&on&&editIdx<0){$('cfg').value='p1';$('sh').value=up?2:1}const W=parse(v('w')),a=parse(v('bAdj'))||(up?14:24);$('bInfo').textContent=on?(W>0?'Frente visible F = '+fr(W)+' − '+fr(a)+' − 2 (filler) = '+fr(W-a-2)+'. Puertas/cajón como un gabinete normal de '+fr(W-a-2)+'.':'Pon el ancho total del gabinete (ej. 44).'):''}
+function hDef(){if(v('kind')=='cab'&&v('tipo')=='tall'){if(!v('h').trim()||parse(v('h'))<60){tallTo(0);if(editIdx<0){if(!v('w').trim())$('w').value='30';$('cfg').value='t2s';b4UI();$('sh').value=5;$('shU').value=2;$('shL').value=3}}if(!v('w').trim())$('w').value='30';return}if(v('kind')=='cab'&&v('tipo')!='tall'&&editIdx<0&&$('h').dataset.auto){$('h').value='';delete $('h').dataset.auto}if(v('kind')=='cab'&&v('tipo')=='base'&&!v('h').trim())$('h').value='31';else if(v('kind')=='cab'&&v('tipo')=='upper'&&v('h').trim()=='31'&&editIdx<0)$('h').value='';if(v('kind')=='cab'&&v('tipo')=='upper'&&editIdx<0&&v('cfg')!='otr'){const u=upDef();if(!v('bot').trim())$('bot').value=plain(u.bot);if(!v('h').trim())$('h').value=plain(u.h)}}
+function upDef(){const wd=WALLS.find(x=>x.name===v('wall')),bs=cabs.filter(c=>c.wall===v('wall')&&c.kind=='cab'&&c.tipo=='base'&&!isFullC(c)).map(c=>c.h),bot=54,ht=wd&&wd.ht>0?wd.ht:96;return{bot,h:Math.max(12,ht-bot)}}
+function b4UI(){if(window.blindUI)blindUI();if(v('kind')=='cab')$('w').setAttribute('list',/^sk/.test(v('cfg'))?'dlSink':(v('tipo')=='tall'?'dlTall':''));{const tl=v('kind')=='cab'&&v('tipo')=='tall',cf=v('cfg');$('tallwrap').classList.toggle('hide',!tl);$('lowwrap').classList.toggle('hide',!['td','ov'].includes(cf));$('pctwrap').classList.toggle('hide',!['t1s','t2s'].includes(cf));$('lowl').textContent=cf=='t1s'||cf=='t2s'?'Alto de la puerta de abajo (vacío = 30 3/4)':'Alto total de los cajones de abajo (vacío = 30 3/4)';$('tdnwrap').classList.toggle('hide',!['td','ov'].includes(cf));$('tdN').placeholder=cf=='ov'?'2':'3';$('opwrap').classList.toggle('hide',!['ov','fs'].includes(cf));$('shsecwrap').classList.toggle('hide',!['t1s','t2s'].includes(cf));$('opl').textContent=cf=='fs'?'Alto del hueco del refri (mínimo y vacío = 72)':'Alto del hueco del horno (vacío = 30)'}$('box4wrap').classList.toggle('hide',!(v('kind')=='cab'&&v('cfg')=='c4'));$('lswrap').classList.toggle('hide',!(v('kind')=='cab'&&v('cfg')=='ls'))}
+const isFullC=c=>(c.kind=='apanel'&&opt.toe+c.h>=84)||(c.kind=='cab'&&c.tall)||c.kind=='tpanel'||(c.kind=='fridge'&&!c.overOK)||(c.kind=='cab'&&c.tipo!='upper'&&opt.toe+c.h>=84);
 const en=w=>String(w).replace(/^pared\b/i,'Wall').replace(/^isla$/i,'Island');
 function rowSt(len,tot,au,n,lbl){if(!n)return `${lbl}: —`;const d=len-tot;if(d<-.01)return `${lbl} ${fr(tot)} · <span class="bad">Se pasa por ${fr(-d)}</span>`;
 if(au&&d>.01)return `${lbl} ${fr(tot)} · <span class="ok">el espacio que sobra (${fr(d)}) lo llena la ventana/espacio</span>`;return `${lbl} ${fr(tot)} · <span class="ok">${d<.01?'Exacto':'Te quedan '+fr(d)}</span>`}
 function wallStatus(name){const W=WALLS.find(x=>x.name===name),I=WINFO[name];if(!W||!I)return '';let t=rowSt(W.len,I.base,I.aB,I.nB,'Bases')+'<br>'+rowSt(W.len,I.upper,I.aU,I.nU,'Uppers');
-if(W.ht>0&&I.top>W.ht+.01)t+=`<br><span class="bad">Se pasa de alto por ${fr(I.top-W.ht)}</span>`;return t}
+if(I.clr)t+=`<br>Base → uppers: ${fr(I.clr.act)} `+(I.clr.act<I.clr.min-.51?`<span class="bad">⚠ menos de ${fr(I.clr.min-.5)} (objetivo ${fr(I.clr.min)})</span>`:`<span class="ok">(objetivo ${fr(I.clr.min)})</span>`);if(W.ht>0&&I.top>W.ht+.01)t+=`<br><span class="bad">Se pasa de alto por ${fr(I.top-W.ht)}</span>`;return t}
 function nextWall(){for(const L of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')if(!WALLS.some(x=>x.name==='Pared '+L))return 'Pared '+L;return ''}
 function renderWalls(){$('wsug').innerHTML=[nextWall(),'Isla'].filter(x=>x&&!WALLS.some(w=>w.name===x)).map(x=>`<option value="${x}">`).join('');if(wEdit<0&&!v('wname'))$('wname').value=nextWall();
 $('wlist').innerHTML=WALLS.length?'<tr><th>Pared</th><th>Largo × alto</th><th>Cómo va</th><th></th></tr>'+WALLS.map((w,i)=>`<tr><td><b>${esc(w.name)}</b></td><td>${fr(w.len)}${w.ht>0?' × '+fr(w.ht):' (sin alto)'}</td><td class="small">${wallStatus(w.name)}</td><td class="act"><button class="mini" onclick="editWall(${i})" title="Editar">✎</button> <button class="del" onclick="delWall(${i})">x</button></td></tr>`).join(''):'<tr><td class="small">Todavía no hay paredes.</td></tr>'}
 function addWall(){const name=v('wname').trim(),len=parse(v('wlen'));let ht=parse(v('wht'));if(!name){werr.textContent='Ponle nombre a la pared.';return}
 if(!(len>0)){werr.textContent='Revisa el largo.';return}if(WALLS.some((x,i)=>x.name===name&&i!==wEdit)){werr.textContent='Ya hay una pared con ese nombre.';return}
 if(!(ht>0))ht=/^(isla|island)/i.test(name)?0:96;werr.textContent='';
-if(wEdit>=0){const old=WALLS[wEdit].name;if(old!==name)cabs.forEach(c=>{if(c.wall===old)c.wall=name;if(c.shWall===old)c.shWall=name});WALLS[wEdit]={name,len,ht};cancelWall()}else WALLS.push({name,len,ht});
-$('wname').value='';$('wlen').value='';$('wht').value='';save();render()}
-function editWall(i){const w=WALLS[i];wEdit=i;$('wname').value=w.name;$('wlen').value=plain(w.len);$('wht').value=w.ht>0?plain(w.ht):'';$('waddb').textContent='Guardar pared';$('wcanc').classList.remove('hide');$('wcard').scrollIntoView({behavior:'smooth'})}
-function cancelWall(){wEdit=-1;$('waddb').textContent='Agregar pared';$('wcanc').classList.add('hide');$('wname').value='';$('wlen').value='';$('wht').value='';renderWalls()}
+if(wEdit>=0){const old=WALLS[wEdit].name;if(old!==name)cabs.forEach(c=>{if(c.wall===old)c.wall=name;if(c.shWall===old)c.shWall=name});}const clr=parse(v('wclr')),wo={name,len,ht};if(clr>0&&Math.abs(clr-19.5)>.001)wo.clr=clr;else if(wEdit>=0&&WALLS[wEdit].clr>0&&!(clr>0))wo.clr=WALLS[wEdit].clr;if(wEdit>=0){WALLS[wEdit]=wo;cancelWall()}else WALLS.push(wo);
+$('wname').value='';$('wlen').value='';$('wht').value='';$('wclr').value='';save();render()}
+function editWall(i){const w=WALLS[i];wEdit=i;$('wname').value=w.name;$('wlen').value=plain(w.len);$('wht').value=w.ht>0?plain(w.ht):'';$('wclr').value=plain(w.clr>0?w.clr:19.5);$('waddb').textContent='Guardar pared';$('wcanc').classList.remove('hide');$('wcard').scrollIntoView({behavior:'smooth'})}
+function cancelWall(){wEdit=-1;$('waddb').textContent='Agregar pared';$('wcanc').classList.add('hide');$('wname').value='';$('wlen').value='';$('wht').value='';$('wclr').value='';renderWalls()}
 function delWall(i){const n=WALLS[i].name,u=cabs.filter(c=>c.wall===n).length;if(u){alert(`Primero borra o cambia de pared los ${u} gabinetes/piezas de ${n}.`);return}
 if(!confirm('¿Borrar '+n+'?'))return;cabs.forEach(c=>{if(c.shWall===n){delete c.shWall;delete c.shEnd}});WALLS.splice(i,1);if(wEdit==i)cancelWall();save();render()}
 function migrateSeq(){if(opt.seqv>=1)return;opt.seqv=1;if(!cabs.length){save();return}
@@ -262,7 +325,7 @@ const rows={base:[],upper:[]};disp.filter(d=>d.c.wall===wall).forEach(d=>{const 
 const gh=disp.filter(d=>d.c.shWall===wall&&d.c.wall!==wall);gh.filter(d=>d.c.shEnd!='end').reverse().forEach(d=>rows[d.c.tipo=='upper'?'upper':'base'].unshift({c:d.c,num:d.num,ghost:true}));
 gh.filter(d=>d.c.shEnd=='end').forEach(d=>rows[d.c.tipo=='upper'?'upper':'base'].push({c:d.c,num:d.num,ghost:true}));
 const slotW=c=>c.fill?0:(c.w||0);
-const bc=rows.base.filter(d=>d.c.kind=='cab'),bh=bc.length?Math.max(...bc.map(d=>d.c.h)):31,cY=toe+bh;
+const bc=rows.base.filter(d=>d.c.kind=='cab'&&!isFullC(d.c)),bh=bc.length?Math.max(...bc.map(d=>d.c.h)):31,cY=toe+bh;
 const uc=rows.upper.filter(d=>d.c.kind=='cab'),uh=uc.length?Math.max(...uc.map(d=>d.c.h)):42;
 // one ordered sequence per wall: base / upper / full (full items take both rows)
 const dm=new Map(disp.map(d=>[d.c,d])),seq=[];
@@ -273,10 +336,10 @@ const AU={base:seq.filter(q=>q.row=='base'&&!slotW(q.d.c)).length,upper:seq.filt
 const mkp=(d,r,x,w,copy)=>{const c=d.c;let y0,h;
 if(c.kind=='tpanel'){y0=c.bot||0;h=c.h||96}
 else if(r=='base'){if(c.kind=='cab'){y0=toe;h=c.h}else if(c.kind=='dw'){y0=0;h=cY}else if(c.kind=='filler'){y0=toe;h=c.h||bh}else{y0=0;h=c.kind=='gap'?0:(c.h||0)}}
-else{const b={window:42,hood:66}[c.kind]||54;y0=c.bot||b;h=c.kind=='gap'?0:(c.h||(c.kind=='filler'?uh:c.kind=='window'?40:c.kind=='hood'?30:0))}
+else{const b={window:42,hood:66}[c.kind]||54;y0=c.bot||b;if(c.kind=='cab'&&c.cfg=='otr'&&!c.bot){const oth=rows.upper.filter(d=>d.c.kind=='cab'&&d.c.cfg!='otr').map(d=>(d.c.bot||54)+d.c.h);y0=(oth.length?Math.max(...oth):96)-c.h}h=c.kind=='gap'?0:(c.h||(c.kind=='filler'?uh:c.kind=='window'?40:c.kind=='hood'?30:0))}
 const p={c,num:d.num,ghost:d.ghost,copy,x,w,y0,h};if(c.fill&&c.w){p.slot={x,w};p.x=x+(w-c.w)/2;p.w=c.w}return p};
 function lay(aw){const P={base:[],upper:[]};let bx=0,ux=0;
-seq.forEach(q=>{const d=q.d,w=slotW(d.c)||(q.row=='full'?0:aw[q.row]);
+seq.forEach(q=>{const d=q.d,w=(d.ghost&&d.c.blind?bDep(d.c):slotW(d.c))||(q.row=='full'?0:aw[q.row]);
 if(q.row=='full'){const x=Math.max(bx,ux);const pb=mkp(d,'base',x,w,false);pb.full=true;P.base.push(pb);const pu=mkp(d,'base',x,w,true);pu.full=true;P.upper.push(pu);bx=ux=x+w}
 else if(q.row=='base'){P.base.push(mkp(d,'base',bx,w,false));bx+=w}else{P.upper.push(mkp(d,'upper',ux,w,false));ux+=w}});
 for(const r of['base','upper']){const o=P[r];o.forEach((p,j)=>{p.first=j==0;p.last=j==o.length-1})}return{P,bx,ux}}
@@ -288,12 +351,13 @@ for(const r of['base','upper']){const o=P[r],q=o[o.length-1];if(q&&!q.copy&&(q.g
 const fixed=r=>r=='base'?L0.bx:L0.ux,autos=r=>AU[r];
 for(const r of['base','upper'])P[r].forEach((p,j)=>{if(p.c.kind!='panel')return;const nb=[P[r][j-1],P[r][j+1]].find(q=>q&&q.c.kind=='cab');const dy=r=='base'?toe:(p.c.bot||54);p.y0=nb?nb.y0:dy;p.h=p.c.h||(nb?nb.h:(r=='base'?bh:uh));if(r=='base'&&p.c.h)p.y0=toe});
 const all=[...P.base,...P.upper];const topC=Math.max(0,...all.map(p=>p.y0+p.h));const top=Math.max(cY+1.5,topC,WH);
-WINFO[wall]={L,base:fixed('base'),upper:fixed('upper'),aB:autos('base'),aU:autos('upper'),nB:rows.base.length,nU:rows.upper.length,top:topC};
+const clrI=(()=>{const ups=P.upper.filter(p=>p.c.kind=='cab'&&p.c.cfg!='otr'&&!p.copy&&!p.ghost);if(!bc.length||!ups.length)return null;const lo=ups.reduce((a,p)=>p.y0<a.y0?p:a);return{act:lo.y0-cY,min:WD&&WD.clr>0?WD.clr:19.5,p:lo}})();
+WINFO[wall]={clr:clrI,hoods:P.upper.filter(p=>(p.c.kind=='hood'||(p.c.kind=='cab'&&p.c.cfg=='otr'))&&!p.copy).map(p=>{const cx=p.x+p.w/2,st=P.base.filter(q=>q.c.kind=='stove'&&!q.copy).sort((a,b)=>Math.abs(a.x+a.w/2-cx)-Math.abs(b.x+b.w/2-cx))[0];return{c:p.c,off:st?st.x+st.w/2-cx:null,sw:st?st.w:null}}),L,base:fixed('base'),upper:fixed('upper'),aB:autos('base'),aU:autos('upper'),nB:rows.base.length,nU:rows.upper.length,top:topC};
 const VW=Math.max(Lc+2*M,80);
 const tw=(s,f)=>s.length*f*.56;
 function lanes(list){const lane=[];list.forEach(l=>{l.w=Math.max(...l.lines.map(z=>tw(z.t,z.f)));l.cx=Math.min(Math.max(l.cx,-M+1.5+l.w/2),VW-M-1.5-l.w/2);let k=0;while(lane[k]!=null&&lane[k]+1.5>l.cx-l.w/2)k++;lane[k]=l.cx+l.w/2;l.lane=k});return lane.length}
 const mk=p=>{const lines=[{t:fr(p.w),f:FS,g:p.c.kind=='gap'}];const nt=p.ghost?'see '+en(p.c.wall):p.c.label;if(nt)lines.push({t:nt,f:NFS});return{cx:p.x+p.w/2,lines}};
-const lab=p=>p.w>0&&!p.copy&&p.c.kind!='panel'&&p.c.kind!='tpanel';
+const lab=p=>p.w>0&&!p.copy&&p.c.kind!='panel'&&p.c.kind!='tpanel'&&p.c.kind!='apanel';
 const sideGaps=list=>{const o=[];list.forEach(p=>{if(p.slot){const gw=(p.slot.w-p.w)/2;if(gw>.05){o.push({cx:p.slot.x+gw/2,x:p.slot.x,lines:[{t:fr(gw),f:NFS,g:true}]});o.push({cx:p.x+p.w+gw/2,x:p.x+p.w,lines:[{t:fr(gw),f:NFS,g:true}]})}}});return o};
 const srt=a=>a.sort((u,v)=>u.cx-v.cx);
 const LB=srt([...P.base.filter(lab).map(mk),...sideGaps(P.base)]),LU=srt([...P.upper.filter(lab).map(mk),...sideGaps(P.upper)]);
@@ -313,39 +377,44 @@ function cab(p){const{x,w,y0,h,c}=p,up=c.tipo=='upper';
 if(p.ghost){g+=R(x,y0,w,h,'fill="#f5f5f4"');if(!up&&toe>0)g+=R(x,0,w,toe,'fill="#e7e5e4"');const dp=Math.min(up?14:24,w-2),sx=p.first?x+w-dp:x;
 g+=R(sx,y0,dp,h,'fill="#fff" stroke-dasharray="1.2 .8"');const cx=p.first?x+(w-dp)/2:x+dp+(w-dp)/2;tx+=Tx(w-dp>9?cx:x+w/2,Y(y0+h/2)+1.1,'CORNER',fit('CORNER',(w-dp>9?w-dp:w)-2,3.2),'font-weight="700" fill="#555"');
 if(p.num)tx+=`<text x="${f2(X(x+0.9))}" y="${f2(up?Y(y0+h)+3:Y(y0)-0.9)}" font-size="2.3" fill="#777">#${p.num}</text>`;return}
-g+=R(x,y0,w,h);if(!up&&toe>0)g+=R(x,0,w,toe,'fill="#e7e5e4"');
-const gi=.45,gp=.7,ix=x+gi,iw=w-2*gi,iy=y0+gi,ih=h-2*gi,DR=6-gi,pc=[];
+g+=R(x,y0,w,h);if(!up&&toe>0)g+=R(x,0,w,toe,'fill="#e7e5e4"');if(c.cfg=='sk1'||c.cfg=='sk2'){const sw2=Math.max(8,w-8),sx=x+(w-sw2)/2,top=y0+h+1.5;tx+=R(sx,top-8,sw2,8,'fill="none" stroke="#64748b" stroke-width=".35" stroke-dasharray="1.2 .8"')+Ln(x+w/2,top,x+w/2,top+7,'stroke="#64748b" stroke-width=".5"')+Ln(x+w/2,top+7,x+w/2+3.5,top+7,'stroke="#64748b" stroke-width=".5"');tx+=Tx(x+w/2,Y(top-4)+1,'SINK',fit('SINK',sw2-2,2.6),'fill="#64748b" font-weight="700"')}if(c.cfg=='otr'){const mh=Math.min(16.5,Math.max(6,y0-cY-2.5)),my=y0-mh;g+=R(x+.4,my,w-.8,mh,'fill="#e5e7eb"')+R(x+1.8,my+1.8,(w-.8)*.66,mh-3.6,'fill="#cbd5e1"');tx+=Tx(x+1.8+(w-.8)*.33,Y(my+mh/2)+1.1,'MICROWAVE',fit('MICROWAVE',(w-.8)*.62,3),'font-weight="700"')}
+const BL=c.blind?bOff(c,c.bSide||(p.last&&!p.first?'R':(p.first&&!p.last?'L':(c.shWall&&c.shEnd!='end'?'R':'L')))):null;if(BL){g+=R(x+BL.hx+.3,y0+.45,BL.hw-.6,h-.9,'fill="#fafaf9" stroke-dasharray="1.2 .8"')+R(x+BL.fl,y0,2,h,'fill="#e7e5e4"');tx+=Tx(x+BL.hx+BL.hw/2,Y(y0+h/2)+1,'BLIND',fit('BLIND',BL.hw-2,3),'fill="#888" font-weight="700"')}
+const gi=.45,gp=.7,ix=(BL?x+BL.fx:x)+gi,iw=(BL?BL.fw:w)-2*gi,iy=y0+gi,ih=h-2*gi,DR=6-gi,pc=[];
 const side=x+w/2<L/2?'R':'L',half=(iw-gp)/2;
 const door=(px,py,pw,ph,hs)=>pc.push({px,py,pw,ph,t:'d',hs}),drw=(px,py,pw,ph)=>pc.push({px,py,pw,ph,t:'w'});
 const fullDoors=(py,ph,two)=>{if(two){door(ix,py,half,ph,'R');door(ix+half+gp,py,half,ph,'L')}
 else if(c.doorW&&c.doorW<w-.5){const dw=Math.min(c.doorW-.25,iw-gp-1),left=p.last||!p.first;
 if(left){door(ix,py,dw,ph,'R');pc.push({px:ix+dw+gp,py,pw:iw-dw-gp,ph,t:'p'})}else{pc.push({px:ix,py,pw:iw-dw-gp,ph,t:'p'});door(ix+iw-dw,py,dw,ph,'L')}}
 else door(ix,py,iw,ph,side)};
-if(c.cfg=='d1'||c.cfg=='d2'){drw(ix,iy+ih-DR,iw,DR);fullDoors(iy,ih-DR-gp,c.cfg=='d2')}
-else if(c.cfg=='p1'||c.cfg=='p2')fullDoors(iy,ih,c.cfg=='p2');
+if(isTall(c))tallDraw(c,ix,iy,iw,ih,gp,pc);else if(c.cfg=='sk1'||c.cfg=='sk2'){pc.push({px:ix,py:iy+ih-DR,pw:iw,ph:DR,t:'w',nh:1});fullDoors(iy,ih-DR-gp,c.cfg=='sk2')}else if(c.cfg=='d1'||c.cfg=='d2'){drw(ix,iy+ih-DR,iw,DR);fullDoors(iy,ih-DR-gp,c.cfg=='d2')}
+else if(c.cfg=='p1'||c.cfg=='p2'||c.cfg=='otr')fullDoors(iy,ih,c.cfg=='p2'||c.cfg=='otr');
 else if(c.cfg=='c2'){const dh=(ih-gp)/2;drw(ix,iy,iw,dh);drw(ix,iy+dh+gp,iw,dh)}
 else if(c.cfg=='c4'){const sd=6-gp/2,dh=(ih-2*sd-3*gp)/2;drw(ix,iy+ih-sd,iw,sd);drw(ix,iy+ih-2*sd-gp,iw,sd);drw(ix,iy+dh+gp,iw,dh);drw(ix,iy,iw,dh)}
 else if(c.cfg=='dg'){const sd=Math.min(c.dep>0?c.dep:14,iw-2),fw=iw-sd-gp,cr=c.shWall?c.shEnd!='end':p.last;if(cr){door(ix,iy,fw,ih,'L');pc.push({px:ix+fw+gp,py:iy,pw:sd,ph:ih,t:'p'})}else{pc.push({px:ix,py:iy,pw:sd,ph:ih,t:'p'});door(ix+sd+gp,iy,fw,ih,'R')}}
 else if(c.cfg=='ls'){const fw=Math.min(lsF(c),iw-gp-1),cr=c.shWall?c.shEnd!='end':p.last;if(cr){door(ix,iy,fw,ih,'L');pc.push({px:ix+fw+gp,py:iy,pw:iw-fw-gp,ph:ih,t:'p'})}else{pc.push({px:ix,py:iy,pw:iw-fw-gp,ph:ih,t:'p'});door(ix+iw-fw,iy,fw,ih,'R')}}
+else if(c.cfg=='op'){g+=R(ix,iy,iw,ih,'fill="#f8fafc"');for(let k=1;k<=c.sh;k++){const yy=iy+ih*k/(c.sh+1);g+=Ln(ix,yy,ix+iw,yy,'stroke-width=".6"')}}
 else{for(let k=1;k<=c.sh;k++){const yy=iy+ih*k/(c.sh+1);g+=Ln(ix,yy,ix+iw,yy,'stroke-dasharray="1.5 1" stroke-width=".3"')}}
-pc.forEach(q=>{g+=R(q.px,q.py,q.pw,q.ph,q.t=='p'?'fill="#f5f5f4"':'');
-if(q.t=='w'){const hl=Math.min(7,q.pw*.35),cy=q.py+q.ph/2;hd+=Ln(q.px+q.pw/2-hl/2,cy,q.px+q.pw/2+hl/2,cy,H)}
+pc.forEach(q=>{g+=R(q.px,q.py,q.pw,q.ph,q.t=='p'?'fill="#f5f5f4"':q.t=='o'?`fill="${q.fill}"`:'');if(q.t=='o')tx+=Tx(q.px+q.pw/2,Y(q.py+q.ph/2)+1.1,q.lab,fit(q.lab,q.pw-2,3),'font-weight="700"');
+if(q.t=='w'&&!q.nh){const hl=Math.min(7,q.pw*.35),cy=q.py+q.ph/2;hd+=Ln(q.px+q.pw/2-hl/2,cy,q.px+q.pw/2+hl/2,cy,H)}
 if(q.t=='d'){const hl=Math.min(4.5,q.ph*.3),hx=q.hs=='R'?q.px+q.pw-1.3:q.px+1.3;
-if(up)hd+=Ln(hx,q.py+1.5,hx,q.py+1.5+hl,H);else hd+=Ln(hx,q.py+q.ph-1.5,hx,q.py+q.ph-1.5-hl,H)}});
-if(p.num){const ys=up?Y(y0+h)+gi+2.6:Y(y0)-gi-0.9;tx+=`<text x="${f2(X(x+gi+0.9))}" y="${f2(ys)}" font-size="2.3" fill="#777">#${p.num}</text>`}}
+{const yy=hY(q,up);hd+=Ln(hx,yy[0],hx,yy[1],H)}}});
+(pc.lab2||[]).forEach(l=>{tx+=Tx(l.x,Y(l.y),l.t,Math.min(2.2,fit(l.t,iw-1,2.2)),'fill="#444" stroke="#fff" stroke-width=".7" paint-order="stroke"')});if(p.num){const ys=up?Y(y0+h)+gi+2.6:Y(y0)-gi-0.9;tx+=`<text x="${f2(X(x+gi+0.9))}" y="${f2(ys)}" font-size="2.3" fill="#777">#${p.num}</text>`}}
 function appl(p){const{x,w,y0,h,c}=p,k=c.kind,lab=EN[k];
 if(k=='fridge'){g+=R(x,y0,w,h,'fill="#fde68a"');const fz=y0+h*.36;g+=Ln(x,fz,x+w,fz)+Ln(x+w/2,fz,x+w/2,y0+h);hd+=Ln(x+w/2-1.5,fz+4,x+w/2-1.5,fz+16,H)+Ln(x+w/2+1.5,fz+4,x+w/2+1.5,fz+16,H)+Ln(x+w/2-5,fz-2.5,x+w/2+5,fz-2.5,H);
 const f=fit(lab,w,3.4);tx+=Tx(x+w/2,Y(y0+(fz-y0)*.42)+1.2,lab,f,'font-weight="700"')}
 else if(k=='stove'){g+=R(x,y0,w,h,'fill="#fecaca"');g+=R(x+2,y0+4,w-4,h-12,'fill="#fee2e2"');hd+=Ln(x+w*.3,y0+h-10,x+w*.7,y0+h-10,H);
 for(let i=1;i<=4;i++)g+=`<circle cx="${f2(X(x+w*i/5))}" cy="${f2(Y(y0+h-3.5))}" r="1" fill="#fff"/>`;tx+=Tx(x+w/2,Y(y0+h*.4),lab,fit(lab,w-4,3.4),'font-weight="700"')}
-else if(k=='dw'){g+=R(x,y0,w,h,'fill="#e5e7eb"');g+=Ln(x,y0+h-4.5,x+w,y0+h-4.5);hd+=Ln(x+w*.3,y0+h-7,x+w*.7,y0+h-7,H);tx+=Tx(x+w/2,Y(y0+h*.4),lab,fit(lab,w,3.4),'font-weight="700"')}
+else if(k=='dw'){g+=R(x+.3,y0,w-.6,h,'fill="#fff" stroke-dasharray="1.4 1"');tx+=Tx(x+w/2,Y(y0+h*.55),'DISHWASHER',fit('DISHWASHER',w-2,3.2),'font-weight="700" fill="#555"')+Tx(x+w/2,Y(y0+h*.4),fr(w)+' space',fit(fr(w)+' space',w-2,2.6),'fill="#777"')}
 else if(k=='window'){g+=R(x,y0,w,h,'fill="#bfdbfe"');g+=R(x+1.5,y0+1.5,w-3,h-3,'fill="#dbeafe"');if(w>24)g+=Ln(x+w/2,y0+1.5,x+w/2,y0+h-1.5);tx+=Tx(x+w/2,Y(y0+h/2)+1.2,lab,fit(lab,w>24?w/2-2:w,3.4),'font-weight="700" fill="#1e3a8a"'+(w>24?` dx="${f2(-w/4)}"`:''))}
+else if(k=='hood'&&c.hbox){const b=y0,cx=x+w/2,tw2=Math.max(w*.55,Math.min(w,14));g+=`<path d="M${f2(X(x))} ${f2(Y(b))} L${f2(X(x+w))} ${f2(Y(b))} L${f2(X(cx+tw2/2))} ${f2(Y(b+h))} L${f2(X(cx-tw2/2))} ${f2(Y(b+h))} Z" fill="#fff"/>`;g+=R(x,b,w,3,'fill="#e7e5e4"');tx+=Tx(cx,Y(b+h*.45)+1.1,'WOOD HOOD',fit('WOOD HOOD',tw2-2,3.2),'font-weight="700"')}
 else if(k=='hood'){const cw=Math.min(w*.4,12),b=y0,band=5,cx=x+w/2;
 g+=`<path d="M${f2(X(x))} ${f2(Y(b+band))} L${f2(X(cx-cw/2))} ${f2(Y(b+12))} L${f2(X(cx-cw/2))} ${f2(Y(b+h))} L${f2(X(cx+cw/2))} ${f2(Y(b+h))} L${f2(X(cx+cw/2))} ${f2(Y(b+12))} L${f2(X(x+w))} ${f2(Y(b+band))} Z" fill="#d1d5db"/>`;
 g+=R(x,b,w,band,'fill="#9ca3af"');tx+=Tx(cx,Y(b+band/2)+1.1,lab,fit(lab,w,3.2),'font-weight="700"')}
 else if(k=='filler'){g+=R(x,y0,w,h)}
 else if(k=='tpanel'){g+=R(x,y0,w,h,'fill="#a8a29e"')}
+else if(k=='apanel'){g+=R(x,y0,w,h,'fill="#d6b98c"');const t='APPLIANCE PANEL ¾',cy=Y(y0+h/2);if(h<50){tx+=Ln(x+w/2,y0+h,x+w/2,Math.max(y0+h,cY+1.5)+3,'stroke="#7c5a2a" stroke-width=".3"')+Tx(x+w/2,Y(Math.max(y0+h,cY+1.5)+3.6),'APPL. PANEL ¾',2.2,'fill="#7c5a2a" font-weight="700" stroke="#fff" stroke-width=".6" paint-order="stroke"')}else tx+=`<text x="${f2(X(x+w/2)-1.3)}" y="${f2(cy)}" font-size="2.2" fill="#7c5a2a" font-weight="700" text-anchor="middle" transform="rotate(-90 ${f2(X(x+w/2)-1.3)} ${f2(cy)})">${t}</text>`}
 else if(k=='panel'){g+=R(x,y0,w,h,'fill="#a8a29e"');if(w>=5)tx+=Tx(x+w/2,Y(y0+h/2),lab,fit(lab,w,2.6))}}
+{const ci=WINFO[wall].clr;if(ci){const p=ci.p,bad=ci.act<ci.min-.51,xx=p.x+Math.min(4,p.w/4),col=bad?'#b91c1c':'#6b7280';tx+=Ln(xx,cY,xx,p.y0,`stroke="${col}" stroke-width=".35" stroke-dasharray="1 .7"`);tx+=`<text x="${f2(X(xx+1.2))}" y="${f2(Y((cY+p.y0)/2)+1)}" font-size="2.6" fill="${col}" font-weight="700">${esc((bad?'⚠ ':'')+fr(ci.act)+(bad?' < '+fr(ci.min-.5):''))}</text>`}}
 // cabinets & appliances
 [...P.base,...P.upper].forEach(p=>{if(!(p.w>0)||p.copy)return;if(p.c.kind=='cab')cab(p);else appl(p)});
 runs.forEach(([a,b])=>{g+=R(a,cY,b-a,1.5,'fill="#a8a29e"')});
@@ -396,24 +465,26 @@ function fillPrintHead(){$('printhead').innerHTML=`<h2 style="margin:0">${esc(v(
 function cardList(){const{disp}=order();return disp.filter(d=>d.c.kind=='cab').map(({c,num})=>{const o=calc(c),q=c.qty||1,bx=[];
 const lab=(one,many,n)=>n==1?one:`${many} (×${n})`;
 o.doors.forEach(p=>bx.push({l:lab('Door','Each door',p[2]*q),v:sz(p[0],p[1]),s:'width × height'}));
-o.fronts.forEach(p=>bx.push({l:lab('Drawer front','Each drawer front',p[2]*q),v:sz(p[0],p[1]),s:'width × height'}));
+o.fronts.forEach(p=>bx.push({l:lab('Drawer front','Each drawer front',p[2]*q),v:sz(p[0],p[1]),s:'width × height'}));(o.ff||[]).forEach(p=>bx.push({l:lab('False drawer front','Each false drawer front',p[2]*q),v:sz(p[0],p[1]),s:'no box · no slides'}));
 o.boxes.forEach(p=>bx.push({l:lab('Drawer box','Each drawer box',p[3]*q),v:sz(p[0],p[1],p[2]),s:'width × height × depth'}));
-o.shelves.forEach(p=>bx.push({l:lab('Shelf','Each shelf',p[2]*q),v:sz(p[0],p[1]),s:'width × depth'}));
+(o.obox||[]).forEach(p=>bx.unshift({l:'Open cabinet box',v:sz(p[0],p[1],p[2]),s:'width × height × depth · no fronts'}));if(o.blindF){bx.unshift({l:'Visible front (info)',v:fr(o.blindF).replace('″',''),s:'W − neighbor depth − 2'});(o.fill||[]).forEach(p=>bx.push({l:'Corner filler',v:sz(p[0],p[1]),s:'width × height'}))}
+(o.open||[]).forEach(p=>bx.push({l:(p[2]=='OVEN'?'Oven':'Fridge')+' opening (info)',v:'height '+fr(p[1]).replace('″',''),s:'no front · check appliance specs'}));
+o.shelves.forEach(p=>bx.push({l:lab('Shelf'+(p.sec?' '+p.sec.split(' / ')[1]:''),'Each shelf'+(p.sec?' '+p.sec.split(' / ')[1]:''),p[2]*q),v:sz(p[0],p[1]),s:'width × depth'}));
 if(o.backs){bx.unshift(...o.backs.map(p=>({l:lab('Back panel','Each back panel',p[2]*q),v:sz(p[0],p[1]),s:'width × height'})));const di=bx.findIndex(b=>b.l.startsWith('Door')||b.l.startsWith('Each door'));if(di>=0)bx[di].l=bx[di].l.replace(/^Door/,'Diagonal door').replace(/^Each door/,'Each diagonal door');bx.splice(di,0,{l:'Diagonal front (info)',v:fr(o.diag).replace('″',''),s:'width · shelf: cut to template'})}
-const notes=[];if(q>1)notes.push(q+' identical cabinets');if(c.shWall)notes.push('Corner · shared with '+en(c.shWall));if(c.label)notes.push(c.label);if(c.doorW)notes.push('Special door '+fr(c.doorW)+' opening (drawing)');if(c.noList)notes.push('NOT in order list');
-return{c,num,head:`#${num} · ${en(c.wall||'').toUpperCase()} · ${c.tipo=='upper'?'UPPER':'BASE'}`,title:fr(c.w)+' × '+fr(c.h),note:notes.join(' · '),bx}})}
-function cardSVG(c){if(c.cfg=='dg')c=Object.assign({},c,{w:diagF(c),cfg:'p1',doorW:0});const S=2.75,W=c.w,H=c.h,up=c.tipo=='upper',gi=.45,gp=.7,ix=gi,iw=W-2*gi,iy=gi,ih=H-2*gi,DR=6-gi,pc=[];const Y=y=>(H-y)*S,X=x=>x*S;
-const r=(x,y,w,h,a)=>`<rect x="${f2(X(x))}" y="${f2(Y(y+h))}" width="${f2(w*S)}" height="${f2(h*S)}" ${a||''}/>`;let g=r(0,0,W,H,'stroke-width="2"'),hd='';
+const notes=[];if(q>1)notes.push(q+' identical cabinets');if(c.shWall)notes.push('Corner · shared with '+en(c.shWall));if(c.cfg=='sk1'||c.cfg=='sk2')notes.push('Sink centered');if(c.cfg=='op')notes.push('Open shelving · no doors');if(isTall(c)&&c.pPct>0){const q=pSec(c);notes.push(`Upper section ${fr(q.up)} (doors ${fr(q.du)}) · Lower section ${fr(q.lo)} (doors ${fr(q.dl)}) · ${plain(c.pPct)}/${plain(100-c.pPct)}%`)}if(c.shU!=null&&c.shL!=null)notes.push(`Shelves: ${c.shU} upper + ${c.shL} lower = ${c.shU+c.shL}`);if(c.blind)notes.push('Blind corner · front '+fr(bF(c))+' · hidden '+fr(bAdjD(c))+' + filler 2');if(c.label)notes.push(c.label);if(c.doorW)notes.push('Special door '+fr(c.doorW)+' opening (drawing)');if(c.noList)notes.push('NOT in order list');
+return{c,num,head:`#${num} · ${en(c.wall||'').toUpperCase()} · ${c.tall?'TALL':c.tipo=='upper'?'UPPER':'BASE'}`,title:fr(c.w)+' × '+fr(c.h),note:notes.join(' · '),bx}})}
+function cardSVG(c){if(c.cfg=='dg')c=Object.assign({},c,{w:diagF(c),cfg:'p1',doorW:0});const BL=c.blind?bOff(c,c.bSide||'R'):null,S=2.75,W=c.w,H=c.h,up=c.tipo=='upper',gi=.45,gp=.7,ix=(BL?BL.fx:0)+gi,iw=(BL?BL.fw:W)-2*gi,iy=gi,ih=H-2*gi,DR=6-gi,pc=[];const Y=y=>(H-y)*S,X=x=>x*S;
+const r=(x,y,w,h,a)=>`<rect x="${f2(X(x))}" y="${f2(Y(y+h))}" width="${f2(w*S)}" height="${f2(h*S)}" ${a||''}/>`;let g=r(0,0,W,H,'stroke-width="2"'),hd='';if(BL){g+=r(BL.hx+.4,.6,BL.hw-.8,H-1.2,'fill="#fafaf9" stroke-dasharray="5 4"')+r(BL.fl,0,2,H,'fill="#e7e5e4"');g+=`<text x="${f2(X(BL.hx+BL.hw/2))}" y="${f2(Y(H/2))}" font-size="${f2(Math.min(14,BL.hw*S/4))}" text-anchor="middle" font-family="Arial" font-weight="700" fill="#999" stroke="none">BLIND</text>`}
 const half=(iw-gp)/2,door=(px,py,pw,ph,hs)=>pc.push({px,py,pw,ph,t:'d',hs}),drw=(px,py,pw,ph)=>pc.push({px,py,pw,ph,t:'w'});
 const fullDoors=(py,ph,two)=>{if(two){door(ix,py,half,ph,'R');door(ix+half+gp,py,half,ph,'L')}else if(c.doorW&&c.doorW<W-.5){const dw=Math.min(c.doorW-.25,iw-gp-1);door(ix,py,dw,ph,'R');pc.push({px:ix+dw+gp,py,pw:iw-dw-gp,ph,t:'p'})}else door(ix,py,iw,ph,'L')};
-if(c.cfg=='d1'||c.cfg=='d2'){drw(ix,iy+ih-DR,iw,DR);fullDoors(iy,ih-DR-gp,c.cfg=='d2')}else if(c.cfg=='p1'||c.cfg=='p2')fullDoors(iy,ih,c.cfg=='p2');
+if(isTall(c))tallDraw(c,ix,iy,iw,ih,gp,pc);else if(c.cfg=='sk1'||c.cfg=='sk2'){pc.push({px:ix,py:iy+ih-DR,pw:iw,ph:DR,t:'w',nh:1});fullDoors(iy,ih-DR-gp,c.cfg=='sk2')}else if(c.cfg=='d1'||c.cfg=='d2'){drw(ix,iy+ih-DR,iw,DR);fullDoors(iy,ih-DR-gp,c.cfg=='d2')}else if(c.cfg=='p1'||c.cfg=='p2'||c.cfg=='otr')fullDoors(iy,ih,c.cfg=='p2'||c.cfg=='otr');
 else if(c.cfg=='c2'){const dh=(ih-gp)/2;drw(ix,iy,iw,dh);drw(ix,iy+dh+gp,iw,dh)}
 else if(c.cfg=='c4'){const sd=6-gp/2,dh=(ih-2*sd-3*gp)/2;drw(ix,iy+ih-sd,iw,sd);drw(ix,iy+ih-2*sd-gp,iw,sd);drw(ix,iy+dh+gp,iw,dh);drw(ix,iy,iw,dh)}
 else if(c.cfg=='ls'){const fw=Math.min(lsF(c),iw/2)-.4,m=ix+iw/2;door(m-fw-.4,iy,fw,ih,'L');door(m+.4,iy,fw,ih,'R');g+=`<line x1="${f2(X(m))}" y1="${f2(Y(iy+ih))}" x2="${f2(X(m))}" y2="${f2(Y(iy))}" stroke-width="2.5"/>`}
 else for(let k=1;k<=c.sh;k++){const yy=iy+ih*k/(c.sh+1);g+=`<line x1="${f2(X(ix))}" y1="${f2(Y(yy))}" x2="${f2(X(ix+iw))}" y2="${f2(Y(yy))}" stroke-dasharray="4 3"/>`}
 const H2='stroke="#333" stroke-width="3.5" stroke-linecap="round"',L=(a,b,c2,d)=>`<line x1="${f2(X(a))}" y1="${f2(Y(b))}" x2="${f2(X(c2))}" y2="${f2(Y(d))}" ${H2}/>`;
-pc.forEach(q=>{g+=r(q.px,q.py,q.pw,q.ph,q.t=='p'?'fill="#f1f1f1"':'');if(q.t=='w'){const hl=Math.min(7,q.pw*.35),cy=q.py+q.ph/2;hd+=L(q.px+q.pw/2-hl/2,cy,q.px+q.pw/2+hl/2,cy)}
-if(q.t=='d'){const hl=Math.min(4.5,q.ph*.3),hx=q.hs=='R'?q.px+q.pw-1.5:q.px+1.5;hd+=up?L(hx,q.py+1.5,hx,q.py+1.5+hl):L(hx,q.py+q.ph-1.5,hx,q.py+q.ph-1.5-hl)}});
+pc.forEach(q=>{g+=r(q.px,q.py,q.pw,q.ph,q.t=='p'?'fill="#f1f1f1"':q.t=='o'?`fill="${q.fill}"`:'');if(q.t=='o')g+=`<text x="${f2(X(q.px+q.pw/2))}" y="${f2(Y(q.py+q.ph/2)+5)}" font-size="${f2(Math.min(14,q.pw*S/q.lab.length*1.5))}" text-anchor="middle" font-family="Arial" font-weight="700" fill="#111" stroke="none">${q.lab}</text>`;if(q.t=='w'&&!q.nh){const hl=Math.min(7,q.pw*.35),cy=q.py+q.ph/2;hd+=L(q.px+q.pw/2-hl/2,cy,q.px+q.pw/2+hl/2,cy)}
+if(q.t=='d'){const hl=Math.min(4.5,q.ph*.3),hx=q.hs=='R'?q.px+q.pw-1.5:q.px+1.5;{const yy=hY(q,up);hd+=L(hx,yy[0],hx,yy[1])}}});
 return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-3 -3 ${f2(W*S+6)} ${f2(H*S+6)}" width="${f2(W*S+6)}" height="${f2(H*S+6)}"><g fill="#fff" stroke="#111" stroke-width="1.3">${g}</g>${hd}</svg>`}
 function fillCards(){const L=cardList();$('cardsec').innerHTML=L.length?`<h2 style="margin:0 0 4px;font-family:Arial">Cabinet cards — ${esc(v('pname').trim()||CUR||'')}</h2><div style="font-size:11px;color:#555;margin-bottom:6px">Sizes are width × height · ⅛″ gap each side and between · plywood ${PLY[opt.ply]}</div>`+L.map(k=>`<div class="pcard"><div class="ph">${esc(k.head)}</div><div class="pt">${k.title}</div><div class="pn">${esc(k.note)}</div><div class="pd">${cardSVG(k.c)}</div>${k.bx.map(b=>`<div class="gb"><div class="gl">${b.l} <span class="gs">${b.s}</span></div><div class="gv">${b.v}</div></div>`).join('')}</div>`).join(''):''}
 function exportPDF(){fillPrintHead();fillCards();document.body.classList.add('pp');window.print();setTimeout(()=>document.body.classList.remove('pp'),800)}
@@ -486,5 +557,5 @@ perr.innerHTML=`PDF listo (${pages.length} páginas). Si no se descargó, <a hre
 function migrateProj(){if(localStorage.getItem('medProjects'))return;if(cabs.length||WALLS.length){const n='Proyecto 1';PROJ[n]={data:JSON.parse(snap()),mod:Date.now()};CUR=n}saveP()}
 function printElev(){document.body.classList.add('pe');window.print();setTimeout(()=>document.body.classList.remove('pe'),800)}
 window.addEventListener('afterprint',()=>document.body.classList.remove('pe'));
-$('toe').value=plain(opt.toe);$('ply').value=String(opt.ply);$('w').addEventListener('input',lsAuto);$('cfg').addEventListener('change',()=>{if(v('cfg')=='ls'){delete $('lsw').dataset.manual;lsAuto()}if(v('cfg')=='c4'||v('cfg')=='ls'||v('cfg')=='dg')$('sh').value=0;else if(v('cfg')!='c2'&&v('sh')=='0')$('sh').value=1;if(v('cfg')=='dg'&&!v('w').trim())$('w').value='24';kindUI();b4UI()});b4UI();kindUI();migrateSeq();migrateWalls();migrateProj();render();
+$('toe').value=plain(opt.toe);$('ply').value=String(opt.ply);$('w').addEventListener('input',lsAuto);$('w').addEventListener('input',()=>blindUI());$('cfg').addEventListener('change',()=>{if(v('cfg')=='ls'){delete $('lsw').dataset.manual;lsAuto()}if(v('cfg')=='c4'||v('cfg')=='ls'||v('cfg')=='dg'||v('cfg')=='otr'||v('cfg')=='fs'||v('cfg')=='sk1'||v('cfg')=='sk2')$('sh').value=0;else if(v('cfg')!='c2'&&v('sh')=='0')$('sh').value=1;if(v('cfg')=='otr'&&editIdx<0){const st=cabs.find(c=>c.kind=='stove'&&c.wall===v('wall'));$('w').value=st&&st.w>0?plain(st.w):'30';$('h').value='18';$('bot').value=''}if(v('cfg')=='dg'&&!v('w').trim())$('w').value='24';if((v('cfg')=='sk1'||v('cfg')=='sk2')&&!v('w').trim())$('w').value='30';if(v('cfg')=='op'&&editIdx<0){$('sh').value=v('tipo')=='upper'?3:1;$('dep').placeholder=v('tipo')=='upper'?'12':'24'}kindUI();b4UI()});b4UI();kindUI();migrateSeq();migrateWalls();migrateProj();render();
 </script></body></html>
